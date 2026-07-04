@@ -18,13 +18,18 @@ export function ImportXml({
 }) {
   const { t } = useT();
   const [src, setSrc] = useState("");
+  // Local picks store an empty url; downloaded videos carry their source url.
+  const [isLocal, setIsLocal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedTo, setSavedTo] = useState<string | null>(null);
 
   useEffect(() => {
     getVideo(videoId).then((v) => {
-      if (v) setSrc(v.local_path);
+      if (v) {
+        setSrc(v.local_path);
+        setIsLocal(!v.url);
+      }
     });
   }, [videoId]);
 
@@ -80,7 +85,7 @@ export function ImportXml({
             {savedTo}
           </p>
           <div className="row" style={{ marginTop: 16 }}>
-            <button type="button" onClick={onHome}>
+            <button type="button" className="ghost" onClick={onHome}>
               {t("import.another")}
             </button>
             <button
@@ -102,7 +107,7 @@ export function ImportXml({
         <Corners />
         <p className="eyebrow">{t("import.eyebrow")}</p>
         <h2>{t("import.title")}</h2>
-        <p className="muted">{t("import.body")}</p>
+        <p className="muted">{t(isLocal ? "import.bodyLocal" : "import.body")}</p>
         {error && <p style={{ color: "var(--destructive)" }}>{error}</p>}
         <div className="row" style={{ marginTop: 8 }}>
           <button
@@ -113,16 +118,18 @@ export function ImportXml({
           >
             {busy ? t("import.working") : t("import.choose")}
           </button>
-          <button type="button" onClick={saveVideo} disabled={busy || !src}>
-            {t("import.noxml")}
-          </button>
+          {!isLocal && (
+            <button type="button" onClick={saveVideo} disabled={busy || !src}>
+              {t("import.noxml")}
+            </button>
+          )}
         </div>
         <button
           type="button"
+          className="ghost"
           onClick={onHome}
           disabled={busy}
-          style={{ marginTop: 16, background: "none", border: "none", padding: 0 }}
-          className="muted"
+          style={{ marginTop: 16 }}
         >
           {t("import.newVideo")}
         </button>

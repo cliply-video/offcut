@@ -42,6 +42,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     "import.title": "Import clips",
     "import.body":
       "Select a SportsCode / Nacsport XML file to cut clips. No XML? Just keep the downloaded video.",
+    "import.bodyLocal":
+      "Select a SportsCode / Nacsport XML file to cut your video into tagged clips.",
     "import.choose": "Choose XML file",
     "import.working": "Working…",
     "import.noxml": "No XML — save the video",
@@ -124,6 +126,8 @@ export const messages: Record<Locale, Record<string, string>> = {
     "import.title": "Importar clips",
     "import.body":
       "Elegí un archivo XML de SportsCode / Nacsport para cortar clips. ¿Sin XML? Quedate con el video descargado.",
+    "import.bodyLocal":
+      "Elegí un archivo XML de SportsCode / Nacsport para cortar tu video en clips etiquetados.",
     "import.choose": "Elegir archivo XML",
     "import.working": "Procesando…",
     "import.noxml": "Sin XML — guardar el video",

@@ -115,7 +115,7 @@ export function Clips({
   return (
     <div style={{ padding: "20px 28px" }}>
       <div className="clips-bar">
-        <button type="button" onClick={onBack}>
+        <button type="button" className="ghost" onClick={onBack}>
           {t("clips.newVideo")}
         </button>
         <div className="row" style={{ gap: 10 }}>
@@ -151,7 +151,19 @@ export function Clips({
         const state = selN === 0 ? "" : selN === g.clips.length ? "all" : "some";
         return (
           <section key={g.label}>
-            <div className="group-head" onClick={() => toggleGroup(g)}>
+            <div
+              className="group-head"
+              onClick={() => toggleGroup(g)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  toggleGroup(g);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={g.label}
+            >
               <span className={`group-check ${state}`}>
                 <CheckIcon />
               </span>
@@ -239,8 +251,16 @@ function ClipCard({
     <div
       className={`clip ${selected ? "sel" : "unsel"}`}
       onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
       role="checkbox"
       aria-checked={selected}
+      aria-label={clip.name ?? clip.tag_label ?? t("clips.clip")}
+      tabIndex={0}
     >
       <div
         className="clip-poster"
@@ -250,12 +270,11 @@ function ClipCard({
         <button
           type="button"
           className="clip-play"
-          aria-label="Play"
+          aria-label={t("clips.watch")}
           onClick={(e) => {
             e.stopPropagation();
             onPlay();
           }}
-          style={{ background: "none", border: "none", padding: 0 }}
         >
           <span>
             <PlayIcon />

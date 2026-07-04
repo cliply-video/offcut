@@ -141,7 +141,7 @@ export function ExportDialog({
               className="row"
               style={{ justifyContent: "flex-end", marginTop: 16 }}
             >
-              <button type="button" onClick={onClose}>
+              <button type="button" className="ghost" onClick={onClose}>
                 {t("export.cancel")}
               </button>
               <button
@@ -189,7 +189,7 @@ export function ExportDialog({
               className="row"
               style={{ justifyContent: "flex-end", marginTop: 16 }}
             >
-              <button type="button" onClick={onClose}>
+              <button type="button" className="ghost" onClick={onClose}>
                 {t("export.close")}
               </button>
               <button
@@ -210,7 +210,7 @@ export function ExportDialog({
               className="row"
               style={{ justifyContent: "flex-end", marginTop: 16 }}
             >
-              <button type="button" onClick={onClose}>
+              <button type="button" className="ghost" onClick={onClose}>
                 {t("export.close")}
               </button>
               <button

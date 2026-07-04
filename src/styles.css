@@ -800,22 +800,36 @@ label.row {
   color: #fff;
   z-index: 2;
 }
+.clip:hover:not(.sel) .clip-check {
+  border-color: var(--pink);
+}
 .clip.sel .clip-check {
   background: var(--pink);
   border-color: var(--pink);
   color: var(--on-accent);
 }
+/* Centered play control. Kept to its own footprint (not inset:0) and
+   pointer-events:none while hidden, so clicking the poster selects the clip —
+   only the visible circle plays. */
 .clip-play {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  background: none;
+  border: none;
   opacity: 0;
-  transition: opacity 0.15s ease;
-  z-index: 2;
+  pointer-events: none;
+  transition:
+    opacity 0.15s var(--ease),
+    transform 0.12s var(--ease);
+  z-index: 3;
 }
-.clip:hover .clip-play {
+.clip:hover .clip-play,
+.clip:focus-within .clip-play {
   opacity: 1;
+  pointer-events: auto;
 }
 .clip-play > span {
   width: 42px;
@@ -827,6 +841,16 @@ label.row {
   place-items: center;
   color: #fff;
   padding-left: 3px;
+  transition:
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+.clip-play:hover > span {
+  background: rgba(20, 16, 30, 0.82);
+  border-color: var(--pink);
+}
+.clip-play:active {
+  transform: translate(-50%, -50%) scale(0.92);
 }
 .clip-meta {
   padding: 8px 9px 9px;
