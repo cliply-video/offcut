@@ -169,8 +169,13 @@ pub async fn generate_poster(
             &src,
             "-frames:v",
             "1",
+            // Grid shows these ~168px wide; a full 1080p frame is wasted encode,
+            // disk and paint. Downscale to a thumbnail (even height for the
+            // encoder).
+            "-vf",
+            "scale=360:-2",
             "-q:v",
-            "2",
+            "3",
             &out_str,
         ])
         .stdout(Stdio::null())

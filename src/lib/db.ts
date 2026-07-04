@@ -73,7 +73,28 @@ export async function deleteVideo(videoId: string): Promise<void> {
   await d.execute("DELETE FROM videos WHERE id = ?", [videoId]);
 }
 
+type Cell = string | number | null;
+
+// Inserts rows with one multi-row INSERT per batch instead of a round-trip per
+// row. Batch size keeps bound params well under SQLite's limit.
+async function bulkInsert(
+  d: Database,
+  prefix: string,
+  cols: number,
+  rows: Cell[][],
+): Promise<void> {
+  if (rows.length === 0) return;
+  const perBatch = Math.max(1, Math.floor(900 / cols));
+  const tuple = `(${Array(cols).fill("?").join(", ")})`;
+  for (let i = 0; i < rows.length; i += perBatch) {
+    const batch = rows.slice(i, i + perBatch);
+    await d.execute(prefix + batch.map(() => tuple).join(", "), batch.flat());
+  }
+}
+
 // Inserts tag types (one per distinct code, colored from <ROWS>) and clips.
+// A 300-clip XML used to fire 300+ awaited INSERTs; batching cuts that to a
+// handful of statements.
 export async function saveParsed(
   videoId: string,
   parsed: ParsedXml,
@@ -92,24 +113,33 @@ export async function saveParsed(
   }
 
   const tagId = new Map<string, string>();
+  const tagRows: Cell[][] = [];
   for (const [key, meta] of codes) {
     const id = crypto.randomUUID();
     tagId.set(key, id);
-    await d.execute(
-      "INSERT INTO tag_types (id, video_id, key, label, color) VALUES (?, ?, ?, ?, ?)",
-      [id, videoId, key, meta.label, meta.color],
-    );
+    tagRows.push([id, videoId, key, meta.label, meta.color]);
   }
 
+  const clipRows: Cell[][] = [];
   for (const c of parsed.clips) {
     const id = crypto.randomUUID();
     const tt = tagId.get(c.code.toLowerCase()) ?? null;
     const name = c.flags.length ? c.flags.join(", ") : null;
-    await d.execute(
-      "INSERT INTO clips (id, video_id, tag_type_id, name, t_sec, start_sec, end_sec) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [id, videoId, tt, name, c.start, c.start, c.end],
-    );
+    clipRows.push([id, videoId, tt, name, c.start, c.start, c.end]);
   }
+
+  await bulkInsert(
+    d,
+    "INSERT INTO tag_types (id, video_id, key, label, color) VALUES ",
+    5,
+    tagRows,
+  );
+  await bulkInsert(
+    d,
+    "INSERT INTO clips (id, video_id, tag_type_id, name, t_sec, start_sec, end_sec) VALUES ",
+    7,
+    clipRows,
+  );
 }
 
 export interface ClipRow {
