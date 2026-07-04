@@ -11,6 +11,11 @@ export const messages: Record<Locale, Record<string, string>> = {
     "footer.tagline": "Open-source clip cutter · nothing leaves your machine",
     "footer.cloud": "Cloud, teams & live sharing →",
 
+    "stepper.aria": "Progress",
+    "stepper.video": "Video",
+    "stepper.xml": "XML",
+    "stepper.clips": "Clips",
+
     "setup.eyebrow": "First run",
     "setup.title": "Setting up",
     "setup.body":
@@ -127,6 +132,11 @@ export const messages: Record<Locale, Record<string, string>> = {
     "status.local": "Local · Offline",
     "footer.tagline": "Cortador de clips open-source · nada sale de tu equipo",
     "footer.cloud": "Nube, equipos y compartir en vivo →",
+
+    "stepper.aria": "Progreso",
+    "stepper.video": "Video",
+    "stepper.xml": "XML",
+    "stepper.clips": "Clips",
 
     "setup.eyebrow": "Primer inicio",
     "setup.title": "Configuración",

@@ -162,6 +162,62 @@ body {
   flex-direction: column;
 }
 
+/* ---- step rail (video → xml → clips), binds the flow ---- */
+.stepper {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg), transparent 40%);
+  backdrop-filter: blur(10px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.stepper-badge {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-2);
+  font-size: 9px;
+  color: var(--muted);
+  transition: all 0.2s var(--ease);
+}
+.stepper-item.active .stepper-badge {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: var(--on-accent);
+}
+.stepper-item.active .stepper-label {
+  color: var(--ink);
+}
+.stepper-item.done .stepper-badge {
+  border-color: var(--win);
+  color: var(--win);
+}
+.stepper-line {
+  width: clamp(20px, 6vw, 56px);
+  height: 1px;
+  margin: 0 14px;
+  background: var(--line-2);
+}
+.stepper-item.done .stepper-line {
+  background: color-mix(in srgb, var(--win), transparent 40%);
+}
+
 /* ---- logo / wordmark (centered in the titlebar) ---- */
 .logo {
   position: absolute;

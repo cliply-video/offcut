@@ -31,8 +31,17 @@ export function App() {
     refresh();
   }, [refresh]);
 
+  const inFlow = ready(status);
+  const stepIndex: 1 | 2 | 3 | undefined = !inFlow
+    ? undefined
+    : step.name === "home"
+      ? 1
+      : step.name === "import"
+        ? 2
+        : 3;
+
   let screen: ReactNode;
-  if (!ready(status)) {
+  if (!inFlow) {
     screen = <Setup status={status} onReady={refresh} />;
   } else if (step.name === "home") {
     screen = (
@@ -63,7 +72,7 @@ export function App() {
 
   return (
     <>
-      <Shell>{screen}</Shell>
+      <Shell step={stepIndex}>{screen}</Shell>
       <UpdateBanner />
       {booting && <Splash onDone={() => setBooting(false)} />}
     </>

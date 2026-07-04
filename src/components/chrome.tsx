@@ -3,6 +3,7 @@ import { useT } from "../i18n";
 import { CLIPLY_URL, GITHUB_URL, openExternal } from "../lib/links";
 import { Logo } from "./logo";
 import { FieldTexture, StatusPill } from "./osd";
+import { Stepper } from "./stepper";
 
 const VERSION = __APP_VERSION__;
 
@@ -14,7 +15,13 @@ function GitHubIcon() {
   );
 }
 
-export function Shell({ children }: { children: ReactNode }) {
+export function Shell({
+  children,
+  step,
+}: {
+  children: ReactNode;
+  step?: 1 | 2 | 3;
+}) {
   const { t, locale, setLocale } = useT();
   return (
     <div className="shell">
@@ -49,6 +56,8 @@ export function Shell({ children }: { children: ReactNode }) {
           </button>
         </nav>
       </header>
+
+      {step && <Stepper current={step} />}
 
       <main className="shell-main">{children}</main>
 

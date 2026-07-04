@@ -1,7 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { confirm, open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Corners } from "../components/osd";
 import { useT } from "../i18n";
 import {
   cancelDownload,
@@ -165,8 +164,6 @@ export function Home({
     if (videoId.current) cancelDownload(videoId.current);
   }, []);
 
-  const steps = [1, 2, 3] as const;
-
   return (
     <div className="stage">
       <div className="hero">
@@ -218,17 +215,6 @@ export function Home({
               </button>
             )}
           </div>
-        </div>
-
-        <div className="steps">
-          {steps.map((n) => (
-            <div key={n} className="step">
-              <Corners />
-              <div className="step-n">{`0${n}`}</div>
-              <h3>{t(`home.step${n}.title`)}</h3>
-              <p>{t(`home.step${n}.body`)}</p>
-            </div>
-          ))}
         </div>
 
         {recent.length > 0 && (
