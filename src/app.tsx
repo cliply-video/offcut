@@ -12,8 +12,10 @@ type Step =
   | { name: "import"; videoId: string }
   | { name: "clips"; videoId: string };
 
-// ffprobe isn't used yet; gate only on what the flow needs.
-const ready = (s: BinariesStatus | null) => !!s && s.ffmpeg && s.ytdlp;
+// ffprobe isn't used yet; gate only on what the flow needs. deno is yt-dlp's
+// JS runtime — YouTube extraction fails without it.
+const ready = (s: BinariesStatus | null) =>
+  !!s && s.ffmpeg && s.ytdlp && s.deno;
 
 export function App() {
   const [status, setStatus] = useState<BinariesStatus | null>(null);

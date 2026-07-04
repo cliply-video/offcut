@@ -65,6 +65,10 @@ export function Setup({
             <span>yt-dlp</span>
             {flag(status?.ytdlp)}
           </li>
+          <li>
+            <span>deno</span>
+            {flag(status?.deno)}
+          </li>
         </ul>
         {downloading && (
           <div className="bar" style={{ margin: "16px 0" }}>

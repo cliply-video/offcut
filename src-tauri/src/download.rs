@@ -102,6 +102,17 @@ pub async fn download_youtube(
     } else {
         args.extend(["-f".into(), "b[ext=mp4]".into()]);
     }
+
+    // yt-dlp needs an external JS runtime to solve YouTube's JS challenge; it
+    // only auto-detects deno on PATH, which we don't use, so point it at the
+    // managed copy explicitly. Missing here → yt-dlp warns and formats drop.
+    if let Some(deno) = resolve(&app, Tool::Deno) {
+        args.extend([
+            "--js-runtimes".into(),
+            format!("deno:{}", deno.to_string_lossy()),
+        ]);
+    }
+
     args.push(url);
 
     let cancel = Arc::new(AtomicBool::new(false));

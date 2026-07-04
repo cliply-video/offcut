@@ -4,6 +4,7 @@ export type BinariesStatus = {
   ffmpeg: boolean;
   ffprobe: boolean;
   ytdlp: boolean;
+  deno: boolean;
 };
 
 export const binariesStatus = () =>

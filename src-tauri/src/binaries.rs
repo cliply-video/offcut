@@ -19,16 +19,18 @@ pub enum Tool {
     Ffmpeg,
     Ffprobe,
     YtDlp,
+    Deno,
 }
 
 impl Tool {
-    const ALL: [Tool; 3] = [Tool::Ffmpeg, Tool::Ffprobe, Tool::YtDlp];
+    const ALL: [Tool; 4] = [Tool::Ffmpeg, Tool::Ffprobe, Tool::YtDlp, Tool::Deno];
 
     fn key(self) -> &'static str {
         match self {
             Tool::Ffmpeg => "ffmpeg",
             Tool::Ffprobe => "ffprobe",
             Tool::YtDlp => "yt-dlp",
+            Tool::Deno => "deno",
         }
     }
 
@@ -37,6 +39,7 @@ impl Tool {
             Tool::Ffmpeg => "FFMPEG_PATH",
             Tool::Ffprobe => "FFPROBE_PATH",
             Tool::YtDlp => "YTDLP_PATH",
+            Tool::Deno => "DENO_PATH",
         }
     }
 }
@@ -75,7 +78,8 @@ fn exe_name(name: &str) -> String {
 /// system/PATH copy (see `resolve`). yt-dlp: pinned 2026.06.09 (raw binary,
 /// all platforms). ffmpeg/ffprobe: macOS via the evermeet 8.1.1 static zip,
 /// Windows via the gyan.dev 8.1.2 static zip; Linux not yet bundled — use
-/// system ffmpeg or set FFMPEG_PATH.
+/// system ffmpeg or set FFMPEG_PATH. deno: pinned 2.9.1 (official zip, per
+/// platform+arch) — yt-dlp's JS runtime, required for YouTube extraction.
 fn source(tool: Tool) -> Option<Source> {
     match tool {
         Tool::YtDlp => {
@@ -147,6 +151,64 @@ fn source(tool: Tool) -> Option<Source> {
                 None
             }
         }
+        Tool::Deno => {
+            // Deno 2.9.1 — yt-dlp's default/recommended JS runtime, required to
+            // solve YouTube's JS challenge. Official zip per platform+arch; each
+            // archive holds a single `deno`/`deno.exe` at its root.
+            #[cfg(target_os = "macos")]
+            {
+                #[cfg(target_arch = "aarch64")]
+                return Some(Source {
+                    url: "https://github.com/denoland/deno/releases/download/v2.9.1/deno-aarch64-apple-darwin.zip",
+                    sha256: "ee3473502118eab301eca93aa6b31d6b0b6c1602d0f59e4cb89d4a262b12f6e7",
+                    archive: Archive::Zip,
+                    member: "deno",
+                });
+                #[cfg(target_arch = "x86_64")]
+                return Some(Source {
+                    url: "https://github.com/denoland/deno/releases/download/v2.9.1/deno-x86_64-apple-darwin.zip",
+                    sha256: "89cbc8c974247772d9200724741b4e692ef49fe470b2ff555da905817c3daa11",
+                    archive: Archive::Zip,
+                    member: "deno",
+                });
+            }
+            #[cfg(target_os = "windows")]
+            {
+                #[cfg(target_arch = "x86_64")]
+                return Some(Source {
+                    url: "https://github.com/denoland/deno/releases/download/v2.9.1/deno-x86_64-pc-windows-msvc.zip",
+                    sha256: "ab310b4232cca207d40ffa41867e93aaf9f893802bc76756e74f486a6b21b371",
+                    archive: Archive::Zip,
+                    member: "deno.exe",
+                });
+                #[cfg(target_arch = "aarch64")]
+                return Some(Source {
+                    url: "https://github.com/denoland/deno/releases/download/v2.9.1/deno-aarch64-pc-windows-msvc.zip",
+                    sha256: "57e282c6f8e92a8b79f570b37b5962bcd347ab49471e1dbc97ffbd4af3d36632",
+                    archive: Archive::Zip,
+                    member: "deno.exe",
+                });
+            }
+            #[cfg(target_os = "linux")]
+            {
+                #[cfg(target_arch = "aarch64")]
+                return Some(Source {
+                    url: "https://github.com/denoland/deno/releases/download/v2.9.1/deno-aarch64-unknown-linux-gnu.zip",
+                    sha256: "0a60d079fa79635a59803074dbbfe86ccc35746dc2c4f8d73f2e50338b3283a9",
+                    archive: Archive::Zip,
+                    member: "deno",
+                });
+                #[cfg(target_arch = "x86_64")]
+                return Some(Source {
+                    url: "https://github.com/denoland/deno/releases/download/v2.9.1/deno-x86_64-unknown-linux-gnu.zip",
+                    sha256: "710c54d63477d1100844ef4818f19507ce0dbf40510903b1d883f19e394446a2",
+                    archive: Archive::Zip,
+                    member: "deno",
+                });
+            }
+            #[allow(unreachable_code)]
+            None
+        }
     }
 }
 
@@ -200,6 +262,7 @@ pub struct BinariesStatus {
     ffmpeg: bool,
     ffprobe: bool,
     ytdlp: bool,
+    deno: bool,
 }
 
 #[tauri::command]
@@ -208,6 +271,7 @@ pub fn binaries_status(app: AppHandle) -> BinariesStatus {
         ffmpeg: resolve(&app, Tool::Ffmpeg).is_some(),
         ffprobe: resolve(&app, Tool::Ffprobe).is_some(),
         ytdlp: resolve(&app, Tool::YtDlp).is_some(),
+        deno: resolve(&app, Tool::Deno).is_some(),
     }
 }
 
