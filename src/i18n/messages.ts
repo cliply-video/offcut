@@ -84,6 +84,15 @@ export const messages: Record<Locale, Record<string, string>> = {
     "export.close": "Close",
     "export.openFolder": "Open folder",
     "export.back": "Back",
+
+    "update.eyebrow": "Update available",
+    "update.available": "Version {version} is ready to install.",
+    "update.install": "Install & restart",
+    "update.later": "Later",
+    "update.downloading": "Downloading… {pct}%",
+    "update.restarting": "Restarting…",
+    "update.failed": "Update failed — try again later.",
+    "update.dismiss": "Dismiss",
   },
   es: {
     "nav.github": "GitHub",
@@ -168,5 +177,14 @@ export const messages: Record<Locale, Record<string, string>> = {
     "export.close": "Cerrar",
     "export.openFolder": "Abrir carpeta",
     "export.back": "Volver",
+
+    "update.eyebrow": "Actualización disponible",
+    "update.available": "La versión {version} está lista para instalar.",
+    "update.install": "Instalar y reiniciar",
+    "update.later": "Después",
+    "update.downloading": "Descargando… {pct}%",
+    "update.restarting": "Reiniciando…",
+    "update.failed": "Falló la actualización — probá más tarde.",
+    "update.dismiss": "Descartar",
   },
 };

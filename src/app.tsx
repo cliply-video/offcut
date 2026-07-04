@@ -1,6 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { Shell } from "./components/chrome";
 import { Splash } from "./components/splash";
+import { UpdateBanner } from "./components/update-banner";
 import { type BinariesStatus, binariesStatus } from "./lib/api";
 import { Clips } from "./screens/clips";
 import { Home } from "./screens/home";
@@ -52,6 +53,7 @@ export function App() {
   return (
     <>
       <Shell>{screen}</Shell>
+      <UpdateBanner />
       {booting && <Splash onDone={() => setBooting(false)} />}
     </>
   );

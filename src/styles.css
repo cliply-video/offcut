@@ -893,6 +893,28 @@ label.row {
   right: 20px;
 }
 
+/* ---- update toast (bottom-right, above the status bar) ---- */
+.update-toast {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--statusbar-h) + 16px);
+  z-index: 50;
+  width: min(320px, calc(100vw - 32px));
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.85);
+  animation: fadeUp 0.35s var(--ease) both;
+}
+.update-msg {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
 /* ---- dialog scrim ---- */
 .scrim {
   position: fixed;
