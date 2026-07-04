@@ -1,7 +1,6 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useState } from "react";
-import { Corners } from "../components/osd";
 import { useT } from "../i18n";
 import { copyFile, readXmlFile } from "../lib/api";
 import { friendlyError } from "../lib/errors";
@@ -78,23 +77,24 @@ export function ImportXml({
   if (savedTo) {
     return (
       <div className="stage">
-        <div className="card">
-          <Corners />
-          <p className="eyebrow">{t("import.savedEyebrow")}</p>
-          <h2>{t("import.savedTitle")}</h2>
-          <p className="muted" style={{ wordBreak: "break-all" }}>
+        <div className="hero hero-step">
+          <div style={{ display: "grid", gap: 10 }}>
+            <p className="eyebrow">{t("import.savedEyebrow")}</p>
+            <h1 className="display">{t("import.savedTitle")}</h1>
+          </div>
+          <p className="lead" style={{ wordBreak: "break-all" }}>
             {savedTo}
           </p>
-          <div className="row" style={{ marginTop: 16 }}>
-            <button type="button" className="ghost" onClick={onHome}>
-              {t("import.another")}
-            </button>
+          <div className="row">
             <button
               type="button"
-              className="primary"
+              className="primary btn-lg"
               onClick={() => revealItemInDir(savedTo)}
             >
               {t("import.reveal")}
+            </button>
+            <button type="button" className="btn-lg" onClick={onHome}>
+              {t("import.another")}
             </button>
           </div>
         </div>
@@ -104,23 +104,31 @@ export function ImportXml({
 
   return (
     <div className="stage">
-      <div className="card">
-        <Corners />
-        <p className="eyebrow">{t("import.eyebrow")}</p>
-        <h2>{t("import.title")}</h2>
-        <p className="muted">{t(isLocal ? "import.bodyLocal" : "import.body")}</p>
-        {error && <p style={{ color: "var(--destructive)" }}>{error}</p>}
-        <div className="row" style={{ marginTop: 8 }}>
+      <div className="hero hero-step">
+        <div style={{ display: "grid", gap: 10 }}>
+          <p className="eyebrow">{t("import.eyebrow")}</p>
+          <h1 className="display">{t("import.title")}</h1>
+        </div>
+        <p className="lead">{t(isLocal ? "import.bodyLocal" : "import.body")}</p>
+        {error && (
+          <p style={{ color: "var(--destructive)", margin: 0 }}>{error}</p>
+        )}
+        <div className="row">
           <button
             type="button"
-            className="primary"
+            className="primary btn-lg"
             onClick={pickXml}
             disabled={busy}
           >
             {busy ? t("import.working") : t("import.choose")}
           </button>
           {!isLocal && (
-            <button type="button" onClick={saveVideo} disabled={busy || !src}>
+            <button
+              type="button"
+              className="btn-lg"
+              onClick={saveVideo}
+              disabled={busy || !src}
+            >
               {t("import.noxml")}
             </button>
           )}
@@ -130,7 +138,7 @@ export function ImportXml({
           className="ghost"
           onClick={onHome}
           disabled={busy}
-          style={{ marginTop: 16 }}
+          style={{ justifySelf: "start" }}
         >
           {t("import.newVideo")}
         </button>
