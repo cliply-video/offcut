@@ -9,8 +9,16 @@ import {
   type ExportClip,
   type ExportSummary,
   exportClips,
+  type MediaInfo,
+  probeMedia,
   type ReelMode,
 } from "../lib/api";
+
+function fmtDur(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 type Phase = "config" | "running" | "done" | "error";
 
@@ -43,6 +51,7 @@ export function ExportDialog({
   const [prog, setProg] = useState<Progress | null>(null);
   const [summary, setSummary] = useState<ExportSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<MediaInfo | null>(null);
 
   useEffect(() => {
     const un = listen<{ videoId: string } & Progress>("export-progress", (e) => {
@@ -53,6 +62,17 @@ export function ExportDialog({
     };
   }, [videoId]);
 
+  // Probe the source: stream-copy is only safe for h264, so default the
+  // re-encode toggle on for anything else. Silent if ffprobe is unavailable.
+  useEffect(() => {
+    probeMedia(sourcePath)
+      .then((i) => {
+        setInfo(i);
+        if (i.vcodec && i.vcodec !== "h264") setReencode(true);
+      })
+      .catch(() => {});
+  }, [sourcePath]);
+
   const pickDir = useCallback(async () => {
     const dir = await open({ directory: true, multiple: false });
     if (typeof dir === "string") setOutDir(dir);
@@ -62,13 +82,22 @@ export function ExportDialog({
     if (!outDir) return;
     setPhase("running");
     setError(null);
+    // Clamp clip ends to the real duration so an over-long XML timecode can't
+    // make ffmpeg overrun or fail the cut.
+    const dur = info?.durationSec ?? 0;
+    const safeClips =
+      dur > 0
+        ? clips.map((c) =>
+            c.endSec > dur ? { ...c, endSec: dur } : c,
+          )
+        : clips;
     try {
       const result = await exportClips({
         videoId,
         videoTitle,
         sourcePath,
         outDir,
-        clips,
+        clips: safeClips,
         individualClips: individual,
         reelMode,
         reencode,
@@ -89,6 +118,7 @@ export function ExportDialog({
     individual,
     reelMode,
     reencode,
+    info,
   ]);
 
   const pct =
@@ -99,6 +129,15 @@ export function ExportDialog({
       <div className="card">
         <Corners />
         <h2>{t("export.title", { n: clips.length })}</h2>
+
+        {phase === "config" && info?.vcodec && (
+          <p className="muted" style={{ fontSize: 12, margin: "0 0 4px" }}>
+            {t("export.source", {
+              codec: info.vcodec.toUpperCase(),
+              dur: fmtDur(info.durationSec),
+            })}
+          </p>
+        )}
 
         {phase === "config" && (
           <>

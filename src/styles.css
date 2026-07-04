@@ -595,6 +595,64 @@ code {
   line-height: 1.5;
 }
 
+/* ---- recent videos (home library) ---- */
+.recent {
+  display: grid;
+  gap: 10px;
+}
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding-right: 10px;
+  transition: border-color 0.15s var(--ease);
+}
+.recent-row:hover {
+  border-color: var(--line-2);
+}
+.recent-open {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.recent-open:hover:not(:disabled) {
+  background: var(--inset);
+}
+.recent-title {
+  max-width: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 /* ---- card / panel (setup / import / export) ---- */
 .card {
   position: relative;

@@ -1,10 +1,21 @@
 import { listen } from "@tauri-apps/api/event";
-import { open } from "@tauri-apps/plugin-dialog";
+import { confirm, open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Corners } from "../components/osd";
 import { useT } from "../i18n";
-import { cancelDownload, downloadUrl, downloadYoutube } from "../lib/api";
-import { createVideo } from "../lib/db";
+import {
+  cancelDownload,
+  deleteMedia,
+  downloadUrl,
+  downloadYoutube,
+} from "../lib/api";
+import {
+  createVideo,
+  deleteVideo,
+  getClipIds,
+  listVideos,
+  type VideoListRow,
+} from "../lib/db";
 import { playSfx } from "../lib/sfx";
 
 const VIDEO_EXTS = [
@@ -46,13 +57,43 @@ function basename(path: string): string {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
-export function Home({ onVideo }: { onVideo: (videoId: string) => void }) {
+export function Home({
+  onVideo,
+  onResume,
+}: {
+  onVideo: (videoId: string) => void;
+  onResume: (videoId: string, hasClips: boolean) => void;
+}) {
   const { t } = useT();
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [percent, setPercent] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [recent, setRecent] = useState<VideoListRow[]>([]);
   const videoId = useRef<string | null>(null);
+
+  useEffect(() => {
+    listVideos().then(setRecent).catch(() => {});
+  }, []);
+
+  const remove = useCallback(
+    async (v: VideoListRow) => {
+      const ok = await confirm(t("home.deleteConfirm", { title: v.title }), {
+        title: t("home.deleteTitle"),
+        kind: "warning",
+      });
+      if (!ok) return;
+      try {
+        const clipIds = await getClipIds(v.id);
+        await deleteMedia(v.id, clipIds);
+        await deleteVideo(v.id);
+        setRecent((r) => r.filter((x) => x.id !== v.id));
+      } catch (e) {
+        setError(String(e));
+      }
+    },
+    [t],
+  );
 
   useEffect(() => {
     const un = listen<{ videoId: string; percent: number }>(
@@ -188,6 +229,39 @@ export function Home({ onVideo }: { onVideo: (videoId: string) => void }) {
             </div>
           ))}
         </div>
+
+        {recent.length > 0 && (
+          <div className="recent">
+            <p className="eyebrow">{t("home.recent")}</p>
+            <ul className="recent-list">
+              {recent.map((v) => (
+                <li key={v.id} className="recent-row">
+                  <button
+                    type="button"
+                    className="recent-open"
+                    onClick={() => onResume(v.id, v.clip_count > 0)}
+                  >
+                    <span className="recent-title">
+                      {v.title || t("home.untitled")}
+                    </span>
+                    <span className="recent-meta">
+                      {v.clip_count > 0
+                        ? t("home.clipCount", { n: v.clip_count })
+                        : t("home.noClipsYet")}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => remove(v)}
+                  >
+                    {t("home.delete")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

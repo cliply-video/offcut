@@ -52,6 +52,8 @@ pub fn run() {
             media::read_xml_file,
             media::generate_poster,
             media::copy_file,
+            media::probe_media,
+            media::delete_media,
             export::export_clips
         ])
         .run(tauri::generate_context!())

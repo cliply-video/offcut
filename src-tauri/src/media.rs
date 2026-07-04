@@ -4,6 +4,7 @@
 use std::path::PathBuf;
 use std::process::Stdio;
 
+use serde::Serialize;
 use tauri::{AppHandle, Manager};
 use tokio::process::Command;
 
@@ -11,6 +12,78 @@ use crate::binaries::{resolve, Tool};
 
 fn es(e: impl std::fmt::Display) -> String {
     e.to_string()
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaInfo {
+    /// ffprobe codec_name of the first video stream (e.g. "h264", "hevc",
+    /// "av1"). Empty when unknown.
+    vcodec: String,
+    duration_sec: f64,
+}
+
+/// Probes a media file for its primary video codec and duration via ffprobe.
+/// Drives export defaults (h264 → stream-copy, else re-encode) and clip-end
+/// clamping. Errors only when ffprobe is missing or the file is unreadable;
+/// missing fields degrade to "" / 0.0 so callers treat them as unknown.
+#[tauri::command]
+pub async fn probe_media(app: AppHandle, src: String) -> Result<MediaInfo, String> {
+    let ffprobe =
+        resolve(&app, Tool::Ffprobe).ok_or_else(|| "ffprobe is not available".to_string())?;
+    let out = Command::new(&ffprobe)
+        .args([
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=codec_name",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "json",
+            &src,
+        ])
+        .output()
+        .await
+        .map_err(es)?;
+    if !out.status.success() {
+        return Err(format!(
+            "ffprobe failed: {}",
+            String::from_utf8_lossy(&out.stderr).trim()
+        ));
+    }
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).map_err(es)?;
+    let vcodec = v["streams"]
+        .get(0)
+        .and_then(|s| s["codec_name"].as_str())
+        .unwrap_or_default()
+        .to_string();
+    let duration_sec = v["format"]["duration"]
+        .as_str()
+        .and_then(|d| d.parse::<f64>().ok())
+        .unwrap_or(0.0);
+    Ok(MediaInfo {
+        vcodec,
+        duration_sec,
+    })
+}
+
+/// Removes a video's downloaded media file (app-data/media/<id>.mp4) and its
+/// clip posters (app-data/posters/<clip_id>.jpg). Best-effort — absent files
+/// are ignored. Never touches a local source path outside app data, so
+/// deleting a locally-picked video leaves the user's own file intact. The DB
+/// rows are removed by the caller.
+#[tauri::command]
+pub fn delete_media(app: AppHandle, video_id: String, clip_ids: Vec<String>) -> Result<(), String> {
+    let data = app.path().app_data_dir().map_err(es)?;
+    let _ = std::fs::remove_file(data.join("media").join(format!("{video_id}.mp4")));
+    let posters = data.join("posters");
+    for id in clip_ids {
+        let _ = std::fs::remove_file(posters.join(format!("{id}.jpg")));
+    }
+    Ok(())
 }
 
 /// Reads an XML file and decodes it, honoring a UTF-16/UTF-8 BOM. NacSport and

@@ -36,6 +36,14 @@ export const generatePoster = (clipId: string, src: string, tSec: number) =>
 export const copyFile = (src: string, dest: string) =>
   invoke<void>("copy_file", { src, dest });
 
+export type MediaInfo = { vcodec: string; durationSec: number };
+
+export const probeMedia = (src: string) =>
+  invoke<MediaInfo>("probe_media", { src });
+
+export const deleteMedia = (videoId: string, clipIds: string[]) =>
+  invoke<void>("delete_media", { videoId, clipIds });
+
 export type ExportClip = {
   name: string | null;
   startSec: number;

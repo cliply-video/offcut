@@ -35,7 +35,18 @@ export function App() {
   if (!ready(status)) {
     screen = <Setup status={status} onReady={refresh} />;
   } else if (step.name === "home") {
-    screen = <Home onVideo={(videoId) => setStep({ name: "import", videoId })} />;
+    screen = (
+      <Home
+        onVideo={(videoId) => setStep({ name: "import", videoId })}
+        onResume={(videoId, hasClips) =>
+          setStep(
+            hasClips
+              ? { name: "clips", videoId }
+              : { name: "import", videoId },
+          )
+        }
+      />
+    );
   } else if (step.name === "import") {
     screen = (
       <ImportXml

@@ -37,6 +37,42 @@ export async function getVideo(videoId: string): Promise<VideoRow | undefined> {
   return rows[0];
 }
 
+export interface VideoListRow extends VideoRow {
+  clip_count: number;
+}
+
+// Recent videos, newest first, with how many clips each has (0 = imported but
+// no XML yet).
+export async function listVideos(): Promise<VideoListRow[]> {
+  const d = await db();
+  return d.select<VideoListRow[]>(
+    `SELECT v.id, v.title, v.url, v.local_path, v.created_at,
+            COUNT(c.id) AS clip_count
+     FROM videos v
+     LEFT JOIN clips c ON c.video_id = v.id
+     GROUP BY v.id
+     ORDER BY v.created_at DESC`,
+  );
+}
+
+export async function getClipIds(videoId: string): Promise<string[]> {
+  const d = await db();
+  const rows = await d.select<{ id: string }[]>(
+    "SELECT id FROM clips WHERE video_id = ?",
+    [videoId],
+  );
+  return rows.map((r) => r.id);
+}
+
+// Removes a video and everything hanging off it. clips/tag_types are deleted
+// explicitly (FK cascade isn't enforced unless the connection enables it).
+export async function deleteVideo(videoId: string): Promise<void> {
+  const d = await db();
+  await d.execute("DELETE FROM clips WHERE video_id = ?", [videoId]);
+  await d.execute("DELETE FROM tag_types WHERE video_id = ?", [videoId]);
+  await d.execute("DELETE FROM videos WHERE id = ?", [videoId]);
+}
+
 // Inserts tag types (one per distinct code, colored from <ROWS>) and clips.
 export async function saveParsed(
   videoId: string,
