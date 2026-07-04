@@ -5,9 +5,10 @@ import { playSfx } from "../lib/sfx";
 
 const VERSION = __APP_VERSION__;
 
-// Boot splash — horizontal channel lockup: the animated Signal mascot (waves
-// hello on launch) beside the RGB-glitch CLIPLY wordmark (burst-on-mount) and a
-// small mono badge, on the dark broadcast field. Plays the clip chime on mount.
+// Boot splash — the animated Signal mascot (waves hello) peeks in large from the
+// lower-left edge of the window, with the RGB-glitch CLIPLY wordmark
+// (burst-on-mount) + mono badge centered on the dark broadcast field. Plays the
+// clip chime on mount.
 export function Splash({ onDone }: { onDone: () => void }) {
   const { t } = useT();
 
@@ -24,14 +25,15 @@ export function Splash({ onDone }: { onDone: () => void }) {
       <span aria-hidden="true" className="bx-scanlines splash-lines" />
       <span aria-hidden="true" className="bx-grain splash-lines" />
 
+      <img
+        src={mascotHello}
+        className="splash-mascot"
+        alt=""
+        aria-hidden="true"
+      />
+
       <div className="splash-stage">
         <div className="splash-lockup bx-glitch-auto">
-          <img
-            src={mascotHello}
-            className="splash-mascot"
-            alt=""
-            aria-hidden="true"
-          />
           <span className="splash-word bx-glitch">
             <span aria-hidden="true" className="bx-glitch-layer bx-glitch-a">
               CLIPLY

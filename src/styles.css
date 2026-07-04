@@ -1134,21 +1134,28 @@ select:focus-visible {
   color: var(--pink);
   filter: drop-shadow(0 0 48px rgba(255, 184, 209, 0.4));
 }
+/* Mascot peeks in large from the lower-left, part of it off the window edge,
+   tilted as if leaning in. */
 .splash-mascot {
-  width: 104px;
-  height: 104px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 44px rgba(255, 184, 209, 0.4));
-  animation: splash-mascot-in 0.6s var(--ease) both;
+  position: absolute;
+  left: clamp(-64px, -4vw, -32px);
+  bottom: clamp(-56px, -3.5vw, -24px);
+  width: clamp(240px, 40vw, 460px);
+  height: auto;
+  z-index: 3;
+  pointer-events: none;
+  transform-origin: bottom left;
+  filter: drop-shadow(0 0 60px rgba(255, 184, 209, 0.35));
+  animation: splash-mascot-peek 0.8s var(--ease) both;
 }
-@keyframes splash-mascot-in {
+@keyframes splash-mascot-peek {
   from {
     opacity: 0;
-    transform: scale(0.6) translateY(8px);
+    transform: translate(-45%, 45%) rotate(-14deg);
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translate(0, 0) rotate(-6deg);
   }
 }
 .splash-word {
