@@ -165,7 +165,7 @@ export function Home({
   }, []);
 
   return (
-    <div className="stage">
+    <div className="stage stage-top">
       <div className="hero">
         <div style={{ display: "grid", gap: 10 }}>
           <p className="eyebrow">{t("home.eyebrow")}</p>

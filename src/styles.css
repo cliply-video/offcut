@@ -553,6 +553,11 @@ button.ghost:hover:not(:disabled) {
   place-items: center;
   padding: 48px 28px;
 }
+/* Top-anchor the content column so a step's title sits at the same height no
+   matter how much (or little) sits below it — uniform placement across steps. */
+.stage-top {
+  align-items: start;
+}
 .stage > * {
   animation: fadeUp 0.5s var(--ease) both;
 }
@@ -597,13 +602,10 @@ code {
   display: grid;
   gap: 24px;
 }
-/* A single flow step in the same hero language as home — focused width, a
-   slightly smaller display than the marketing title. */
+/* Flow steps reuse the hero column verbatim, so the eyebrow + title land in the
+   same spot on every step (home, import, …) instead of drifting. */
 .hero-step {
-  width: min(720px, 100%);
-}
-.hero-step .display {
-  font-size: clamp(34px, 5vw, 52px);
+  width: min(980px, 100%);
 }
 .input-xl {
   width: 100%;

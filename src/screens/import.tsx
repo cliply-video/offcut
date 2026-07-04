@@ -76,7 +76,7 @@ export function ImportXml({
 
   if (savedTo) {
     return (
-      <div className="stage">
+      <div className="stage stage-top">
         <div className="hero hero-step">
           <div style={{ display: "grid", gap: 10 }}>
             <p className="eyebrow">{t("import.savedEyebrow")}</p>
