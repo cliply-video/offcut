@@ -637,40 +637,6 @@ code {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--pink), transparent 55%);
 }
 
-/* ---- steps (OSD panels) ---- */
-.steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-.step {
-  position: relative;
-  border: 1px solid var(--line);
-  padding: 18px 16px 16px;
-  background: var(--surface);
-}
-.step-n {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 30px;
-  line-height: 1;
-  color: var(--pink);
-}
-.step h3 {
-  margin: 10px 0 5px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.step p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
 /* ---- recent videos (home library) ---- */
 .recent {
   display: grid;
@@ -742,21 +708,25 @@ code {
 .card > h2 {
   position: relative;
 }
-.card ul.muted {
+/* Runtime-tool checklist on the setup step. */
+.tool-list {
   list-style: none;
   padding: 0;
-  margin: 14px 0;
+  margin: 0;
+  width: min(440px, 100%);
   display: grid;
-  gap: 6px;
+  gap: 8px;
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.04em;
+  color: var(--muted);
 }
-.card ul.muted li {
+.tool-list li {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 6px;
+  padding-bottom: 8px;
   text-transform: uppercase;
 }
 
@@ -1137,12 +1107,6 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 16px;
-}
-.splash-mark {
-  width: 56px;
-  height: 56px;
-  color: var(--pink);
-  filter: drop-shadow(0 0 48px rgba(255, 184, 209, 0.4));
 }
 /* Mascot peeks in large from the lower-left, part of it off the window edge,
    tilted as if leaning in. */

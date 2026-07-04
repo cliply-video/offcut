@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { useCallback, useEffect, useState } from "react";
-import { Corners, StatusPill } from "../components/osd";
+import { StatusPill } from "../components/osd";
 import { useT } from "../i18n";
 import { type BinariesStatus, downloadBinaries } from "../lib/api";
 import { friendlyError } from "../lib/errors";
@@ -80,13 +80,14 @@ export function Setup({
     : 0;
 
   return (
-    <div className="stage">
-      <div className="card">
-        <Corners />
-        <p className="eyebrow">{t("setup.eyebrow")}</p>
-        <h2>{t("setup.title")}</h2>
-        <p className="muted">{t("setup.body")}</p>
-        <ul className="muted">
+    <div className="stage stage-top">
+      <div className="hero hero-step">
+        <div style={{ display: "grid", gap: 10 }}>
+          <p className="eyebrow">{t("setup.eyebrow")}</p>
+          <h1 className="display">{t("setup.title")}</h1>
+        </div>
+        <p className="lead">{t("setup.body")}</p>
+        <ul className="tool-list">
           {TOOLS.map((tool) => (
             <li key={tool.key}>
               <span>{tool.key}</span>
@@ -95,15 +96,17 @@ export function Setup({
           ))}
         </ul>
         {downloading && (
-          <div className="bar" style={{ margin: "16px 0" }}>
+          <div className="bar">
             <span style={{ width: `${overall}%` }} />
           </div>
         )}
-        {error && <p style={{ color: "var(--destructive)" }}>{error}</p>}
+        {error && (
+          <p style={{ color: "var(--destructive)", margin: 0 }}>{error}</p>
+        )}
         <div className="row">
           <button
             type="button"
-            className="primary"
+            className="primary btn-lg"
             onClick={download}
             disabled={downloading}
           >
@@ -111,7 +114,12 @@ export function Setup({
               ? t("setup.downloading", { pct: overall })
               : t("setup.download")}
           </button>
-          <button type="button" onClick={onReady} disabled={downloading}>
+          <button
+            type="button"
+            className="btn-lg"
+            onClick={onReady}
+            disabled={downloading}
+          >
             {t("setup.recheck")}
           </button>
         </div>
