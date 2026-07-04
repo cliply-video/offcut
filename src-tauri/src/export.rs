@@ -7,12 +7,18 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
+use futures_util::{stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
+use tokio::process::Command;
 
 use crate::binaries::{resolve, Tool};
+
+/// Clips cut concurrently. Bounded so a many-clip export uses several cores
+/// without re-creating an unbounded ffmpeg spawn storm.
+const CUT_CONCURRENCY: usize = 4;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,8 +65,8 @@ fn es(e: impl std::fmt::Display) -> String {
     e.to_string()
 }
 
-fn run_ffmpeg(ffmpeg: &Path, args: &[String]) -> Result<(), String> {
-    let out = Command::new(ffmpeg).args(args).output().map_err(es)?;
+async fn run_ffmpeg(ffmpeg: &Path, args: &[String]) -> Result<(), String> {
+    let out = Command::new(ffmpeg).args(args).output().await.map_err(es)?;
     if out.status.success() {
         return Ok(());
     }
@@ -144,7 +150,12 @@ fn cut_args(src: &str, start: f64, end: f64, reencode: bool, out: &Path) -> Vec<
     args
 }
 
-fn concat(ffmpeg: &Path, files: &[PathBuf], list_path: &Path, out: &Path) -> Result<(), String> {
+async fn concat(
+    ffmpeg: &Path,
+    files: &[PathBuf],
+    list_path: &Path,
+    out: &Path,
+) -> Result<(), String> {
     let body = files
         .iter()
         .map(|f| format!("file '{}'", f.to_string_lossy().replace('\'', "'\\''")))
@@ -167,7 +178,7 @@ fn concat(ffmpeg: &Path, files: &[PathBuf], list_path: &Path, out: &Path) -> Res
     ]
     .map(String::from)
     .to_vec();
-    let result = run_ffmpeg(ffmpeg, &args);
+    let result = run_ffmpeg(ffmpeg, &args).await;
     let _ = std::fs::remove_file(list_path);
     result
 }
@@ -209,7 +220,16 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
         );
     };
 
-    // 1) Cut every clip (timeline order), grouped into per-tag folders.
+    // 1a) Plan every cut in timeline order (cheap: paths, per-tag numbering,
+    // dirs). Output paths and the ordered file lists are fixed here so reels
+    // stay in order regardless of the order cuts actually finish.
+    struct Job {
+        file: PathBuf,
+        start: f64,
+        end: f64,
+        label: String,
+    }
+    let mut jobs: Vec<Job> = Vec::with_capacity(total);
     let mut all_files: Vec<PathBuf> = Vec::new();
     let mut by_tag: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
     let mut tag_counters: BTreeMap<String, usize> = BTreeMap::new();
@@ -219,8 +239,6 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
             .name
             .clone()
             .unwrap_or_else(|| format!("clip {}", i + 1));
-        emit("clip", i, total, &label);
-
         let n = tag_counters.entry(tag.clone()).or_insert(0);
         *n += 1;
         let file = if options.individual_clips {
@@ -230,19 +248,41 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
         } else {
             scratch.join(format!("{i:03} {}.mp4", sanitize(&label)))
         };
-        run_ffmpeg(
-            &ffmpeg,
-            &cut_args(
-                &options.source_path,
-                clip.start_sec,
-                clip.end_sec,
-                options.reencode,
-                &file,
-            ),
-        )?;
         all_files.push(file.clone());
-        by_tag.entry(tag).or_default().push(file);
-        emit("clip", i + 1, total, &label);
+        by_tag.entry(tag).or_default().push(file.clone());
+        jobs.push(Job {
+            file,
+            start: clip.start_sec,
+            end: clip.end_sec,
+            label,
+        });
+    }
+
+    // 1b) Cut in parallel (bounded). Progress counts completions as they land.
+    // Futures are built via Iterator::map (not Stream::map) to dodge a
+    // higher-ranked lifetime error on the borrowed captures.
+    let done = AtomicUsize::new(0);
+    emit("clip", 0, total, "");
+    let cuts = jobs.into_iter().map(|job| {
+        let ffmpeg = &ffmpeg;
+        let src = &options.source_path;
+        let done = &done;
+        let emit = &emit;
+        async move {
+            run_ffmpeg(
+                ffmpeg,
+                &cut_args(src, job.start, job.end, options.reencode, &job.file),
+            )
+            .await?;
+            let d = done.fetch_add(1, Ordering::Relaxed) + 1;
+            emit("clip", d, total, &job.label);
+            Ok::<(), String>(())
+        }
+    });
+    let results: Vec<Result<(), String>> =
+        stream::iter(cuts).buffer_unordered(CUT_CONCURRENCY).collect().await;
+    for r in results {
+        r?;
     }
 
     // 2) Reels (concat of already-cut files: same codec ⇒ copy-safe).
@@ -259,7 +299,8 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
                     files,
                     &reel_dir.join(format!(".concat-{idx}.txt")),
                     &reel_dir.join(format!("Reel - {}.mp4", sanitize(tag))),
-                )?;
+                )
+                .await?;
                 reels += 1;
                 emit("reel", idx + 1, reel_total, tag);
             }
@@ -271,7 +312,8 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
                 &all_files,
                 &base.join(".concat-all.txt"),
                 &base.join(format!("{} - all clips.mp4", sanitize(&options.video_title))),
-            )?;
+            )
+            .await?;
             reels = 1;
             emit("reel", 1, 1, "all clips");
         }
