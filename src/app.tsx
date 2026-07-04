@@ -4,12 +4,14 @@ import { Splash } from "./components/splash";
 import { UpdateBanner } from "./components/update-banner";
 import { type BinariesStatus, binariesStatus } from "./lib/api";
 import { Clips } from "./screens/clips";
-import { Home } from "./screens/home";
 import { ImportXml } from "./screens/import";
+import { Landing } from "./screens/landing";
 import { Setup } from "./screens/setup";
+import { AddVideo } from "./screens/video";
 
 type Step =
-  | { name: "home" }
+  | { name: "landing" }
+  | { name: "video" }
   | { name: "import"; videoId: string }
   | { name: "clips"; videoId: string };
 
@@ -20,7 +22,7 @@ const ready = (s: BinariesStatus | null) =>
 
 export function App() {
   const [status, setStatus] = useState<BinariesStatus | null>(null);
-  const [step, setStep] = useState<Step>({ name: "home" });
+  const [step, setStep] = useState<Step>({ name: "landing" });
   const [booting, setBooting] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -34,19 +36,21 @@ export function App() {
   const inFlow = ready(status);
   const stepIndex: 1 | 2 | 3 | undefined = !inFlow
     ? undefined
-    : step.name === "home"
+    : step.name === "video"
       ? 1
       : step.name === "import"
         ? 2
-        : 3;
+        : step.name === "clips"
+          ? 3
+          : undefined;
 
   let screen: ReactNode;
   if (!inFlow) {
     screen = <Setup status={status} onReady={refresh} />;
-  } else if (step.name === "home") {
+  } else if (step.name === "landing") {
     screen = (
-      <Home
-        onVideo={(videoId) => setStep({ name: "import", videoId })}
+      <Landing
+        onStart={() => setStep({ name: "video" })}
         onResume={(videoId, hasClips) =>
           setStep(
             hasClips
@@ -56,17 +60,27 @@ export function App() {
         }
       />
     );
+  } else if (step.name === "video") {
+    screen = (
+      <AddVideo
+        onVideo={(videoId) => setStep({ name: "import", videoId })}
+        onBack={() => setStep({ name: "landing" })}
+      />
+    );
   } else if (step.name === "import") {
     screen = (
       <ImportXml
         videoId={step.videoId}
         onDone={() => setStep({ name: "clips", videoId: step.videoId })}
-        onHome={() => setStep({ name: "home" })}
+        onHome={() => setStep({ name: "landing" })}
       />
     );
   } else {
     screen = (
-      <Clips videoId={step.videoId} onBack={() => setStep({ name: "home" })} />
+      <Clips
+        videoId={step.videoId}
+        onBack={() => setStep({ name: "landing" })}
+      />
     );
   }
 

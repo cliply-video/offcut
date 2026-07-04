@@ -1,20 +1,9 @@
 import { listen } from "@tauri-apps/api/event";
-import { confirm, open } from "@tauri-apps/plugin-dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "../i18n";
-import {
-  cancelDownload,
-  deleteMedia,
-  downloadUrl,
-  downloadYoutube,
-} from "../lib/api";
-import {
-  createVideo,
-  deleteVideo,
-  getClipIds,
-  listVideos,
-  type VideoListRow,
-} from "../lib/db";
+import { cancelDownload, downloadUrl, downloadYoutube } from "../lib/api";
+import { createVideo } from "../lib/db";
 import { friendlyError } from "../lib/errors";
 import { playSfx } from "../lib/sfx";
 
@@ -57,43 +46,21 @@ function basename(path: string): string {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
-export function Home({
+// Step 1 — add a video by link/URL/id (downloaded) or a local file (used in
+// place). On success routes on to the XML import step.
+export function AddVideo({
   onVideo,
-  onResume,
+  onBack,
 }: {
   onVideo: (videoId: string) => void;
-  onResume: (videoId: string, hasClips: boolean) => void;
+  onBack: () => void;
 }) {
   const { t } = useT();
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [percent, setPercent] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [recent, setRecent] = useState<VideoListRow[]>([]);
   const videoId = useRef<string | null>(null);
-
-  useEffect(() => {
-    listVideos().then(setRecent).catch(() => {});
-  }, []);
-
-  const remove = useCallback(
-    async (v: VideoListRow) => {
-      const ok = await confirm(t("home.deleteConfirm", { title: v.title }), {
-        title: t("home.deleteTitle"),
-        kind: "warning",
-      });
-      if (!ok) return;
-      try {
-        const clipIds = await getClipIds(v.id);
-        await deleteMedia(v.id, clipIds);
-        await deleteVideo(v.id);
-        setRecent((r) => r.filter((x) => x.id !== v.id));
-      } catch (e) {
-        setError(friendlyError(e, t));
-      }
-    },
-    [t],
-  );
 
   useEffect(() => {
     const un = listen<{ videoId: string; percent: number }>(
@@ -134,7 +101,7 @@ export function Home({
       setError(friendlyError(e, t));
       setBusy(false);
     }
-  }, [url, onVideo]);
+  }, [url, onVideo, t]);
 
   // Use a local video file in place — no download, no copy. ffmpeg and the
   // asset protocol read the original path directly.
@@ -158,7 +125,7 @@ export function Home({
     } catch (e) {
       setError(friendlyError(e, t));
     }
-  }, [onVideo]);
+  }, [onVideo, t]);
 
   const cancel = useCallback(() => {
     if (videoId.current) cancelDownload(videoId.current);
@@ -166,17 +133,13 @@ export function Home({
 
   return (
     <div className="stage stage-top">
-      <div className="hero">
+      <div className="hero hero-step">
         <div style={{ display: "grid", gap: 10 }}>
-          <p className="eyebrow">{t("home.eyebrow")}</p>
-          <h1 className="display">
-            {t("home.titleA")}
-            <br />
-            <span className="accent-text">{t("home.titleB")}</span>
-          </h1>
+          <p className="eyebrow">{t("video.eyebrow")}</p>
+          <h1 className="display">{t("video.title")}</h1>
         </div>
 
-        <p className="lead">{t("home.lead")}</p>
+        <p className="lead">{t("video.body")}</p>
 
         <div style={{ display: "grid", gap: 12 }}>
           <input
@@ -192,7 +155,9 @@ export function Home({
               <span style={{ width: `${percent}%` }} />
             </div>
           )}
-          {error && <p style={{ color: "var(--destructive)", margin: 0 }}>{error}</p>}
+          {error && (
+            <p style={{ color: "var(--destructive)", margin: 0 }}>{error}</p>
+          )}
           <div className="row">
             <button
               type="button"
@@ -217,38 +182,15 @@ export function Home({
           </div>
         </div>
 
-        {recent.length > 0 && (
-          <div className="recent">
-            <p className="eyebrow">{t("home.recent")}</p>
-            <ul className="recent-list">
-              {recent.map((v) => (
-                <li key={v.id} className="recent-row">
-                  <button
-                    type="button"
-                    className="recent-open"
-                    onClick={() => onResume(v.id, v.clip_count > 0)}
-                  >
-                    <span className="recent-title">
-                      {v.title || t("home.untitled")}
-                    </span>
-                    <span className="recent-meta">
-                      {v.clip_count > 0
-                        ? t("home.clipCount", { n: v.clip_count })
-                        : t("home.noClipsYet")}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost"
-                    onClick={() => remove(v)}
-                  >
-                    {t("home.delete")}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <button
+          type="button"
+          className="ghost"
+          onClick={onBack}
+          disabled={busy}
+          style={{ justifySelf: "start" }}
+        >
+          {t("video.back")}
+        </button>
       </div>
     </div>
   );

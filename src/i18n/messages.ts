@@ -31,7 +31,13 @@ export const messages: Record<Locale, Record<string, string>> = {
     "home.titleB": "shareable clips.",
     "home.lead":
       "Paste a video link or open a local file, drop in your analysis XML, and export ready-to-cut MP4s — folders per tag and reels included. No account, no cloud, nothing leaves your machine.",
+    "home.start": "Get started →",
     "home.placeholder": "YouTube link, direct video URL, or ID",
+    "video.eyebrow": "Step 1 · Video",
+    "video.title": "Add a video",
+    "video.body":
+      "Paste a YouTube link, a direct video URL, or open a local file to work with.",
+    "video.back": "← Back",
     "home.download": "Download video →",
     "home.downloading": "Downloading… {pct}%",
     "home.cancel": "Cancel",
@@ -153,7 +159,13 @@ export const messages: Record<Locale, Record<string, string>> = {
     "home.titleB": "clips para compartir.",
     "home.lead":
       "Pegá un enlace de video o abrí un archivo local, sumá tu XML de análisis y exportá MP4s listos — carpetas por etiqueta y reels incluidos. Sin cuenta, sin nube, nada sale de tu equipo.",
+    "home.start": "Empezar →",
     "home.placeholder": "Link de YouTube, URL directa de video o ID",
+    "video.eyebrow": "Paso 1 · Video",
+    "video.title": "Agregá un video",
+    "video.body":
+      "Pegá un link de YouTube, una URL directa de video o abrí un archivo local para trabajar.",
+    "video.back": "← Volver",
     "home.download": "Descargar video →",
     "home.downloading": "Descargando… {pct}%",
     "home.cancel": "Cancelar",
