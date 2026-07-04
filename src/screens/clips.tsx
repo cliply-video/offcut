@@ -1,5 +1,5 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "../i18n";
 import { type ExportClip, generatePoster } from "../lib/api";
 import { type ClipRow, getClips, getVideo } from "../lib/db";
@@ -232,11 +232,32 @@ function ClipCard({
   onPlay: () => void;
 }) {
   const { t } = useT();
+  const cardRef = useRef<HTMLDivElement>(null);
   const [poster, setPoster] = useState<string | null>(null);
+  // Only clips scrolled near the viewport request a poster. A 300-clip video
+  // would otherwise fire 300 ffmpeg jobs on mount; the Rust side also gates
+  // concurrency, this cuts the total work.
+  const [seen, setSeen] = useState(false);
 
   useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setSeen(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!seen || !localPath) return;
     let alive = true;
-    if (!localPath) return;
     generatePoster(clip.id, localPath, clip.t_sec)
       .then((p) => {
         if (alive) setPoster(convertFileSrc(p));
@@ -245,10 +266,11 @@ function ClipCard({
     return () => {
       alive = false;
     };
-  }, [clip.id, clip.t_sec, localPath]);
+  }, [seen, clip.id, clip.t_sec, localPath]);
 
   return (
     <div
+      ref={cardRef}
       className={`clip ${selected ? "sel" : "unsel"}`}
       onClick={onToggle}
       onKeyDown={(e) => {

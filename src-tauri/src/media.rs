@@ -3,15 +3,25 @@
 
 use std::path::PathBuf;
 use std::process::Stdio;
+use std::sync::OnceLock;
 
 use serde::Serialize;
 use tauri::{AppHandle, Manager};
 use tokio::process::Command;
+use tokio::sync::Semaphore;
 
 use crate::binaries::{resolve, Tool};
 
 fn es(e: impl std::fmt::Display) -> String {
     e.to_string()
+}
+
+/// Caps concurrent poster ffmpeg jobs. A 300-clip XML mounts 300 cards at once,
+/// each calling generate_poster; without a gate that spawns 300 ffmpeg
+/// processes simultaneously and hammers the whole machine (CPU/FD/memory).
+fn poster_gate() -> &'static Semaphore {
+    static SEM: OnceLock<Semaphore> = OnceLock::new();
+    SEM.get_or_init(|| Semaphore::new(4))
 }
 
 #[derive(Serialize)]
@@ -146,6 +156,9 @@ pub async fn generate_poster(
     }
     let ffmpeg =
         resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
+
+    // Held across the ffmpeg run; bounds simultaneous poster jobs.
+    let _permit = poster_gate().acquire().await.map_err(es)?;
 
     let status = Command::new(&ffmpeg)
         .args([
