@@ -54,6 +54,16 @@ body {
   background: var(--bg);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  /* Desktop chrome: UI text isn't selectable (avoids stray highlights); inputs
+     opt back in below. */
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* ---- CRT field texture (scanlines + grain), fixed behind everything ---- */
