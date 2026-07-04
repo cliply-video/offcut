@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Corners, StatusPill } from "../components/osd";
 import { useT } from "../i18n";
 import { type BinariesStatus, downloadBinaries } from "../lib/api";
+import { friendlyError } from "../lib/errors";
 
 // Rust Tool::key() strings (what "binary-download" events carry) paired to the
 // BinariesStatus field each maps to. yt-dlp's key and field spelling differ.
@@ -48,7 +49,7 @@ export function Setup({
       await downloadBinaries();
       onReady();
     } catch (e) {
-      setError(String(e));
+      setError(friendlyError(e, t));
     } finally {
       setDownloading(false);
     }

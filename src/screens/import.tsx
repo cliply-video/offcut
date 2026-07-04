@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Corners } from "../components/osd";
 import { useT } from "../i18n";
 import { copyFile, readXmlFile } from "../lib/api";
+import { friendlyError } from "../lib/errors";
 import { getVideo, saveParsed } from "../lib/db";
 import { parseSportXml } from "../lib/xml";
 
@@ -50,7 +51,7 @@ export function ImportXml({
       await saveParsed(videoId, parsed);
       onDone();
     } catch (e) {
-      setError(String(e));
+      setError(friendlyError(e, t));
       setBusy(false);
     }
   }, [videoId, onDone, t]);
@@ -68,7 +69,7 @@ export function ImportXml({
       await copyFile(src, dest);
       setSavedTo(dest);
     } catch (e) {
-      setError(String(e));
+      setError(friendlyError(e, t));
     } finally {
       setBusy(false);
     }

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "../i18n";
 import { type ExportClip, generatePoster } from "../lib/api";
 import { type ClipRow, getClips, getVideo } from "../lib/db";
+import { useModal } from "../lib/use-modal";
 import { ExportDialog } from "./export-dialog";
 
 function fmt(sec: number): string {
@@ -23,6 +24,23 @@ function PlayIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function FilmIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="16" rx="1" />
+      <path d="M3 9h18M3 15h18M8 4v16M16 4v16" />
     </svg>
   );
 }
@@ -234,6 +252,7 @@ function ClipCard({
   const { t } = useT();
   const cardRef = useRef<HTMLDivElement>(null);
   const [poster, setPoster] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   // Only clips scrolled near the viewport request a poster. A 300-clip video
   // would otherwise fire 300 ffmpeg jobs on mount; the Rust side also gates
   // concurrency, this cuts the total work.
@@ -262,7 +281,9 @@ function ClipCard({
       .then((p) => {
         if (alive) setPoster(convertFileSrc(p));
       })
-      .catch(() => {});
+      .catch(() => {
+        if (alive) setFailed(true);
+      });
     return () => {
       alive = false;
     };
@@ -288,6 +309,11 @@ function ClipCard({
         className="clip-poster"
         style={poster ? { backgroundImage: `url(${poster})` } : undefined}
       >
+        {!poster && failed && (
+          <span className="clip-noposter" aria-hidden="true">
+            <FilmIcon />
+          </span>
+        )}
         <span className="clip-check">{selected && <CheckIcon />}</span>
         <button
           type="button"
@@ -326,8 +352,9 @@ function VideoOverlay({
   closeLabel: string;
   onClose: () => void;
 }) {
+  const ref = useModal<HTMLDivElement>(onClose);
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay" ref={ref} onClick={onClose}>
       <button type="button" className="overlay-close" onClick={onClose}>
         ✕ {closeLabel}
       </button>

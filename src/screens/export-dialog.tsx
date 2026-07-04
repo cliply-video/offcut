@@ -4,7 +4,9 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useState } from "react";
 import { Corners } from "../components/osd";
 import { useT } from "../i18n";
+import { friendlyError } from "../lib/errors";
 import { playSfx } from "../lib/sfx";
+import { useModal } from "../lib/use-modal";
 import {
   cancelExport,
   type ExportClip,
@@ -113,7 +115,7 @@ export function ExportDialog({
       setPhase("done");
       playSfx();
     } catch (e) {
-      setError(String(e));
+      setError(friendlyError(e, t));
       setPhase("error");
     }
   }, [
@@ -133,12 +135,18 @@ export function ExportDialog({
     cancelExport(videoId);
   }, [videoId]);
 
+  // Esc / focus-trap. Don't dismiss mid-export — Cancel is the way out then.
+  const dismiss = useCallback(() => {
+    if (phase !== "running") onClose();
+  }, [phase, onClose]);
+  const modalRef = useModal<HTMLDivElement>(dismiss);
+
   const pct =
     prog && prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0;
 
   return (
     <div className="scrim">
-      <div className="card">
+      <div className="card" ref={modalRef} tabIndex={-1}>
         <Corners />
         <h2>{t("export.title", { n: clips.length })}</h2>
 

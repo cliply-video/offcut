@@ -103,6 +103,21 @@ export const messages: Record<Locale, Record<string, string>> = {
     "update.restarting": "Restarting…",
     "update.failed": "Update failed — try again later.",
     "update.dismiss": "Dismiss",
+
+    "err.jsRuntime":
+      "YouTube needs the Deno runtime. Finish setup on the Home screen, then retry.",
+    "err.checksum": "A download was corrupted. Please try again.",
+    "err.noManagedDownload":
+      "This tool has no automatic download on your platform — install it via your package manager.",
+    "err.ffmpegMissing": "ffmpeg isn’t set up yet — set it up on the Home screen.",
+    "err.ffprobeMissing":
+      "ffprobe isn’t set up yet — set it up on the Home screen.",
+    "err.ytdlpMissing": "yt-dlp isn’t set up yet — set it up on the Home screen.",
+    "err.sourceMissing":
+      "The source video is missing — download or re-open it, then try again.",
+    "err.videoUnavailable":
+      "This video can’t be downloaded — it may be private, removed, age-restricted, or region-locked.",
+    "err.network": "Network problem — check your connection and try again.",
   },
   es: {
     "nav.github": "GitHub",
@@ -206,5 +221,19 @@ export const messages: Record<Locale, Record<string, string>> = {
     "update.restarting": "Reiniciando…",
     "update.failed": "Falló la actualización — probá más tarde.",
     "update.dismiss": "Descartar",
+
+    "err.jsRuntime":
+      "YouTube necesita el runtime Deno. Completá la configuración en Inicio y reintentá.",
+    "err.checksum": "Una descarga se corrompió. Probá de nuevo.",
+    "err.noManagedDownload":
+      "Esta herramienta no tiene descarga automática en tu plataforma — instalala con tu gestor de paquetes.",
+    "err.ffmpegMissing": "ffmpeg no está configurado — configuralo en Inicio.",
+    "err.ffprobeMissing": "ffprobe no está configurado — configuralo en Inicio.",
+    "err.ytdlpMissing": "yt-dlp no está configurado — configuralo en Inicio.",
+    "err.sourceMissing":
+      "Falta el video de origen — descargalo o abrilo de nuevo y reintentá.",
+    "err.videoUnavailable":
+      "Este video no se puede descargar — puede ser privado, eliminado, con restricción de edad o de región.",
+    "err.network": "Problema de red — revisá tu conexión y reintentá.",
   },
 };

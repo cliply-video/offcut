@@ -16,6 +16,7 @@ import {
   listVideos,
   type VideoListRow,
 } from "../lib/db";
+import { friendlyError } from "../lib/errors";
 import { playSfx } from "../lib/sfx";
 
 const VIDEO_EXTS = [
@@ -89,7 +90,7 @@ export function Home({
         await deleteVideo(v.id);
         setRecent((r) => r.filter((x) => x.id !== v.id));
       } catch (e) {
-        setError(String(e));
+        setError(friendlyError(e, t));
       }
     },
     [t],
@@ -131,7 +132,7 @@ export function Home({
       playSfx();
       onVideo(id);
     } catch (e) {
-      setError(String(e));
+      setError(friendlyError(e, t));
       setBusy(false);
     }
   }, [url, onVideo]);
@@ -156,7 +157,7 @@ export function Home({
       playSfx();
       onVideo(id);
     } catch (e) {
-      setError(String(e));
+      setError(friendlyError(e, t));
     }
   }, [onVideo]);
 

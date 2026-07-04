@@ -845,6 +845,18 @@ label.row {
 .clip:hover:not(.sel) .clip-poster::after {
   opacity: 0.2;
 }
+.clip-noposter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--surface) 0 10px,
+    var(--surface-2) 10px 20px
+  );
+}
 .clip-check {
   position: absolute;
   top: 7px;
