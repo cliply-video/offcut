@@ -4,6 +4,15 @@ import { Corners, StatusPill } from "../components/osd";
 import { useT } from "../i18n";
 import { type BinariesStatus, downloadBinaries } from "../lib/api";
 
+// Rust Tool::key() strings (what "binary-download" events carry) paired to the
+// BinariesStatus field each maps to. yt-dlp's key and field spelling differ.
+const TOOLS = [
+  { key: "ffmpeg", field: "ffmpeg" },
+  { key: "ffprobe", field: "ffprobe" },
+  { key: "yt-dlp", field: "ytdlp" },
+  { key: "deno", field: "deno" },
+] as const;
+
 export function Setup({
   status,
   onReady,
@@ -13,12 +22,13 @@ export function Setup({
 }) {
   const { t } = useT();
   const [downloading, setDownloading] = useState(false);
-  const [percent, setPercent] = useState(0);
+  const [prog, setProg] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const un = listen<{ percent: number }>("binary-download", (e) =>
-      setPercent(e.payload.percent),
+    const un = listen<{ tool: string; percent: number }>(
+      "binary-download",
+      (e) => setProg((p) => ({ ...p, [e.payload.tool]: e.payload.percent })),
     );
     return () => {
       un.then((f) => f());
@@ -27,8 +37,13 @@ export function Setup({
 
   const download = useCallback(async () => {
     setError(null);
+    // Seed each missing tool to 0 so its row shows progress from the first frame.
+    const seed: Record<string, number> = {};
+    for (const tool of TOOLS) {
+      if (!status?.[tool.field]) seed[tool.key] = 0;
+    }
+    setProg(seed);
     setDownloading(true);
-    setPercent(0);
     try {
       await downloadBinaries();
       onReady();
@@ -37,13 +52,31 @@ export function Setup({
     } finally {
       setDownloading(false);
     }
-  }, [onReady]);
+  }, [onReady, status]);
 
-  const flag = (ok: boolean | undefined) => (
-    <StatusPill tone={ok ? "win" : "loss"}>
-      {ok ? t("setup.ready") : t("setup.missing")}
-    </StatusPill>
-  );
+  const pill = (tool: (typeof TOOLS)[number]) => {
+    if (status?.[tool.field]) {
+      return <StatusPill tone="win">{t("setup.ready")}</StatusPill>;
+    }
+    const p = prog[tool.key];
+    if (p !== undefined && p >= 100) {
+      return <StatusPill tone="win">{t("setup.ready")}</StatusPill>;
+    }
+    if (downloading && p !== undefined) {
+      return (
+        <StatusPill tone="gold" blink>
+          {Math.round(p)}%
+        </StatusPill>
+      );
+    }
+    return <StatusPill tone="loss">{t("setup.missing")}</StatusPill>;
+  };
+
+  // Summary bar spans the tools this run is fetching.
+  const active = Object.keys(prog);
+  const overall = active.length
+    ? Math.round(active.reduce((s, k) => s + prog[k], 0) / active.length)
+    : 0;
 
   return (
     <div className="stage">
@@ -53,26 +86,16 @@ export function Setup({
         <h2>{t("setup.title")}</h2>
         <p className="muted">{t("setup.body")}</p>
         <ul className="muted">
-          <li>
-            <span>ffmpeg</span>
-            {flag(status?.ffmpeg)}
-          </li>
-          <li>
-            <span>ffprobe</span>
-            {flag(status?.ffprobe)}
-          </li>
-          <li>
-            <span>yt-dlp</span>
-            {flag(status?.ytdlp)}
-          </li>
-          <li>
-            <span>deno</span>
-            {flag(status?.deno)}
-          </li>
+          {TOOLS.map((tool) => (
+            <li key={tool.key}>
+              <span>{tool.key}</span>
+              {pill(tool)}
+            </li>
+          ))}
         </ul>
         {downloading && (
           <div className="bar" style={{ margin: "16px 0" }}>
-            <span style={{ width: `${percent}%` }} />
+            <span style={{ width: `${overall}%` }} />
           </div>
         )}
         {error && <p style={{ color: "var(--destructive)" }}>{error}</p>}
@@ -84,7 +107,7 @@ export function Setup({
             disabled={downloading}
           >
             {downloading
-              ? t("setup.downloading", { pct: Math.round(percent) })
+              ? t("setup.downloading", { pct: overall })
               : t("setup.download")}
           </button>
           <button type="button" onClick={onReady} disabled={downloading}>

@@ -277,15 +277,22 @@ pub fn binaries_status(app: AppHandle) -> BinariesStatus {
 
 #[derive(Clone, Serialize)]
 struct DownloadProgress {
+    tool: String,
     percent: f64,
 }
 
-fn emit(app: &AppHandle, percent: f64) {
-    let _ = app.emit("binary-download", DownloadProgress { percent });
+fn emit(app: &AppHandle, tool: &str, percent: f64) {
+    let _ = app.emit(
+        "binary-download",
+        DownloadProgress {
+            tool: tool.to_string(),
+            percent,
+        },
+    );
 }
 
 /// Downloads any missing tools into <app-data>/bin, verifying SHA256. Emits
-/// "binary-download" with a 0–100 percent spanning all missing tools.
+/// "binary-download" with each tool's own 0–100 percent (100 = installed).
 #[tauri::command]
 pub async fn download_binaries(app: AppHandle) -> Result<(), String> {
     let missing: Vec<Tool> = Tool::ALL
@@ -293,7 +300,6 @@ pub async fn download_binaries(app: AppHandle) -> Result<(), String> {
         .filter(|t| resolve(&app, *t).is_none())
         .collect();
     if missing.is_empty() {
-        emit(&app, 100.0);
         return Ok(());
     }
 
@@ -315,14 +321,9 @@ pub async fn download_binaries(app: AppHandle) -> Result<(), String> {
     let dir = managed_dir(&app)?;
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
 
-    let slice = if sources.is_empty() {
-        0.0
-    } else {
-        100.0 / sources.len() as f64
-    };
-    for (i, (tool, src)) in sources.iter().enumerate() {
+    for (tool, src) in &sources {
         let dest = dir.join(exe_name(tool.key()));
-        download_one(&app, &dir, src, &dest, slice * i as f64, slice).await?;
+        download_one(&app, &dir, src, &dest, tool.key()).await?;
     }
 
     if !unavailable.is_empty() {
@@ -332,7 +333,6 @@ pub async fn download_binaries(app: AppHandle) -> Result<(), String> {
             if unavailable.len() == 1 { "it" } else { "them" },
         ));
     }
-    emit(&app, 100.0);
     Ok(())
 }
 
@@ -341,8 +341,7 @@ async fn download_one(
     dir: &Path,
     src: &Source,
     dest: &Path,
-    base_percent: f64,
-    span: f64,
+    tool: &str,
 ) -> Result<(), String> {
     let res = reqwest::get(src.url).await.map_err(|e| e.to_string())?;
     if !res.status().is_success() {
@@ -362,10 +361,10 @@ async fn download_one(
         file.write_all(&chunk).map_err(|e| e.to_string())?;
         received += chunk.len() as u64;
         if total > 0 {
-            let percent = base_percent + (received as f64 / total as f64) * span;
+            let percent = (received as f64 / total as f64) * 100.0;
             if percent - last >= 1.0 {
                 last = percent;
-                emit(app, percent);
+                emit(app, tool, percent);
             }
         }
     }
@@ -391,6 +390,7 @@ async fn download_one(
         }
     }
     set_executable(dest)?;
+    emit(app, tool, 100.0);
     Ok(())
 }
 
