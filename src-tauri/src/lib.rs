@@ -43,6 +43,7 @@ pub fn run() {
 
     builder
         .manage(download::DownloadState::default())
+        .manage(export::ExportState::default())
         .invoke_handler(tauri::generate_handler![
             binaries::binaries_status,
             binaries::download_binaries,
@@ -54,7 +55,8 @@ pub fn run() {
             media::copy_file,
             media::probe_media,
             media::delete_media,
-            export::export_clips
+            export::export_clips,
+            export::cancel_export
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

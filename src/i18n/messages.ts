@@ -84,6 +84,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "export.reencode":
       "Re-encode (frame-accurate, slower) — off = fast stream copy",
     "export.cancel": "Cancel",
+    "export.cancelling": "Cancelling…",
     "export.run": "Export",
     "export.cutting": "Cutting",
     "export.buildingReel": "Building reel",
@@ -186,6 +187,7 @@ export const messages: Record<Locale, Record<string, string>> = {
     "export.reencode":
       "Recodificar (preciso por frame, más lento) — apagado = stream-copy rápido",
     "export.cancel": "Cancelar",
+    "export.cancelling": "Cancelando…",
     "export.run": "Exportar",
     "export.cutting": "Cortando",
     "export.buildingReel": "Armando reel",

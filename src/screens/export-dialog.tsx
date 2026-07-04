@@ -6,6 +6,7 @@ import { Corners } from "../components/osd";
 import { useT } from "../i18n";
 import { playSfx } from "../lib/sfx";
 import {
+  cancelExport,
   type ExportClip,
   type ExportSummary,
   exportClips,
@@ -52,6 +53,7 @@ export function ExportDialog({
   const [summary, setSummary] = useState<ExportSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<MediaInfo | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     const un = listen<{ videoId: string } & Progress>("export-progress", (e) => {
@@ -102,6 +104,11 @@ export function ExportDialog({
         reelMode,
         reencode,
       });
+      if (result.cancelled) {
+        setCancelling(false);
+        setPhase("config");
+        return;
+      }
       setSummary(result);
       setPhase("done");
       playSfx();
@@ -120,6 +127,11 @@ export function ExportDialog({
     reencode,
     info,
   ]);
+
+  const cancel = useCallback(() => {
+    setCancelling(true);
+    cancelExport(videoId);
+  }, [videoId]);
 
   const pct =
     prog && prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0;
@@ -212,6 +224,19 @@ export function ExportDialog({
             </p>
             <div className="bar">
               <span style={{ width: `${pct}%` }} />
+            </div>
+            <div
+              className="row"
+              style={{ justifyContent: "flex-end", marginTop: 16 }}
+            >
+              <button
+                type="button"
+                className="ghost"
+                onClick={cancel}
+                disabled={cancelling}
+              >
+                {cancelling ? t("export.cancelling") : t("export.cancel")}
+              </button>
             </div>
           </>
         )}

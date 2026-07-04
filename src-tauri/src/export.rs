@@ -5,13 +5,15 @@
 //!   <Video Title>/Reels/Reel - <Tag>.mp4       (per-tag reels)
 //!   <Video Title>/<Video Title> - all clips.mp4 (combined reel)
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use futures_util::{stream, StreamExt};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, State};
 use tokio::process::Command;
 
 use crate::binaries::{resolve, Tool};
@@ -19,6 +21,57 @@ use crate::binaries::{resolve, Tool};
 /// Clips cut concurrently. Bounded so a many-clip export uses several cores
 /// without re-creating an unbounded ffmpeg spawn storm.
 const CUT_CONCURRENCY: usize = 4;
+
+#[derive(Default)]
+pub struct ExportState {
+    cancel: Mutex<HashMap<String, Arc<AtomicBool>>>,
+}
+
+// Removes the export's cancel flag on any exit path (done, error, cancelled).
+struct CancelGuard<'a> {
+    state: &'a ExportState,
+    id: String,
+}
+impl Drop for CancelGuard<'_> {
+    fn drop(&mut self) {
+        self.state.cancel.lock().unwrap().remove(&self.id);
+    }
+}
+
+enum CutOutcome {
+    Done,
+    Cancelled,
+}
+
+// Resolves once the flag flips to true (polled). Raced against the ffmpeg run.
+async fn wait_cancel(cancel: &AtomicBool) {
+    while !cancel.load(Ordering::Relaxed) {
+        tokio::time::sleep(Duration::from_millis(150)).await;
+    }
+}
+
+// Runs one cut, killing the ffmpeg child if the export is cancelled. output()
+// buffers stdout/stderr (no pipe deadlock); kill_on_drop means dropping the
+// future on cancel terminates the child.
+async fn run_cut(ffmpeg: &Path, args: &[String], cancel: &AtomicBool) -> Result<CutOutcome, String> {
+    if cancel.load(Ordering::Relaxed) {
+        return Ok(CutOutcome::Cancelled);
+    }
+    let fut = Command::new(ffmpeg).args(args).kill_on_drop(true).output();
+    tokio::select! {
+        out = fut => {
+            let out = out.map_err(es)?;
+            if out.status.success() {
+                Ok(CutOutcome::Done)
+            } else {
+                let stderr = String::from_utf8_lossy(&out.stderr);
+                let tail: Vec<&str> = stderr.lines().rev().take(4).collect();
+                Err(format!("ffmpeg failed: {}", tail.into_iter().rev().collect::<Vec<_>>().join(" ")))
+            }
+        }
+        _ = wait_cancel(cancel) => Ok(CutOutcome::Cancelled),
+    }
+}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,6 +102,15 @@ pub struct ExportSummary {
     clips: usize,
     reels: usize,
     out_dir: String,
+    cancelled: bool,
+}
+
+/// Signals an in-flight export to stop; running ffmpeg cuts are killed.
+#[tauri::command]
+pub fn cancel_export(state: State<'_, ExportState>, video_id: String) {
+    if let Some(flag) = state.cancel.lock().unwrap().get(&video_id) {
+        flag.store(true, Ordering::Relaxed);
+    }
 }
 
 #[derive(Clone, Serialize)]
@@ -183,9 +245,14 @@ async fn concat(
     result
 }
 
-/// Async: blocking ffmpeg runs off the main thread; an export takes minutes.
+/// Async: ffmpeg cuts run concurrently as child processes; an export takes
+/// minutes and can be cancelled mid-run via `cancel_export`.
 #[tauri::command]
-pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<ExportSummary, String> {
+pub async fn export_clips(
+    app: AppHandle,
+    state: State<'_, ExportState>,
+    options: ExportOptions,
+) -> Result<ExportSummary, String> {
     if options.clips.is_empty() {
         return Err("No clips to export".to_string());
     }
@@ -205,6 +272,19 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
     if !options.individual_clips {
         std::fs::create_dir_all(&scratch).map_err(es)?;
     }
+
+    // Register a cancel flag so cancel_export can stop this run; the guard
+    // clears it from the map on every exit path.
+    let cancel = Arc::new(AtomicBool::new(false));
+    state
+        .cancel
+        .lock()
+        .unwrap()
+        .insert(options.video_id.clone(), cancel.clone());
+    let _guard = CancelGuard {
+        state: state.inner(),
+        id: options.video_id.clone(),
+    };
 
     let total = options.clips.len();
     let emit = |phase: &'static str, done: usize, total: usize, label: &str| {
@@ -263,26 +343,46 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
     // higher-ranked lifetime error on the borrowed captures.
     let done = AtomicUsize::new(0);
     emit("clip", 0, total, "");
+    let cancel_ref = cancel.as_ref();
     let cuts = jobs.into_iter().map(|job| {
         let ffmpeg = &ffmpeg;
         let src = &options.source_path;
         let done = &done;
         let emit = &emit;
         async move {
-            run_ffmpeg(
+            let outcome = run_cut(
                 ffmpeg,
                 &cut_args(src, job.start, job.end, options.reencode, &job.file),
+                cancel_ref,
             )
             .await?;
-            let d = done.fetch_add(1, Ordering::Relaxed) + 1;
-            emit("clip", d, total, &job.label);
-            Ok::<(), String>(())
+            if matches!(outcome, CutOutcome::Done) {
+                let d = done.fetch_add(1, Ordering::Relaxed) + 1;
+                emit("clip", d, total, &job.label);
+            }
+            Ok::<CutOutcome, String>(outcome)
         }
     });
-    let results: Vec<Result<(), String>> =
+    let results: Vec<Result<CutOutcome, String>> =
         stream::iter(cuts).buffer_unordered(CUT_CONCURRENCY).collect().await;
+    let mut cancelled = cancel.load(Ordering::Relaxed);
     for r in results {
-        r?;
+        if matches!(r?, CutOutcome::Cancelled) {
+            cancelled = true;
+        }
+    }
+
+    // Stop before reels; leave any finished cuts in place (non-destructive).
+    if cancelled {
+        if !options.individual_clips {
+            let _ = std::fs::remove_dir_all(&scratch);
+        }
+        return Ok(ExportSummary {
+            clips: 0,
+            reels: 0,
+            out_dir: base.to_string_lossy().into_owned(),
+            cancelled: true,
+        });
     }
 
     // 2) Reels (concat of already-cut files: same codec ⇒ copy-safe).
@@ -328,5 +428,6 @@ pub async fn export_clips(app: AppHandle, options: ExportOptions) -> Result<Expo
         clips: if options.individual_clips { total } else { 0 },
         reels,
         out_dir: base.to_string_lossy().into_owned(),
+        cancelled: false,
     })
 }

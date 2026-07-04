@@ -68,7 +68,11 @@ export type ExportSummary = {
   clips: number;
   reels: number;
   outDir: string;
+  cancelled: boolean;
 };
 
 export const exportClips = (options: ExportOptions) =>
   invoke<ExportSummary>("export_clips", { options });
+
+export const cancelExport = (videoId: string) =>
+  invoke<void>("cancel_export", { videoId });
