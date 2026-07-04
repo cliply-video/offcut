@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" fill="none" role="img" aria-label="cliply SIGNAL mascot">
+  <defs>
+    <clipPath id="screen"><rect x="166" y="200" width="268" height="292" rx="26"/></clipPath>
+    <pattern id="sl" width="1" height="4" patternUnits="userSpaceOnUse">
+      <rect width="1" height="3" fill="rgba(0,0,0,0)"/>
+      <rect width="1" height="1" y="3" fill="rgba(0,0,0,.18)"/>
+    </pattern>
+    <filter id="sh" x="-25%" y="-25%" width="150%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="13" stdDeviation="11" flood-color="#000000" flood-opacity="0.40"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="15" flood-color="#38bdf8" flood-opacity="0.30"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#sh)">
+    <!-- antenna + signal arcs -->
+    <line x1="300" y1="186" x2="300" y2="150" stroke="#fde9c8" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="300" cy="146" r="9" fill="#fde9c8"/>
+    <g stroke="#ffffff" stroke-width="7" stroke-linecap="round" fill="none">
+      <path d="M278 138 Q300 120 322 138"/>
+      <path d="M266 124 Q300 100 334 124" opacity=".85"/>
+      <path d="M254 110 Q300 82 346 110" opacity=".7"/>
+    </g>
+
+    <!-- TV bezel -->
+    <rect x="150" y="184" width="300" height="324" rx="42" fill="#1c1a23" stroke="#2c2935" stroke-width="4"/>
+
+    <!-- SMPTE color-signal screen -->
+    <g clip-path="url(#screen)">
+      <rect x="166" y="200" width="39" height="292" fill="#c0c0c0"/>
+      <rect x="205" y="200" width="38" height="292" fill="#c0c000"/>
+      <rect x="243" y="200" width="38" height="292" fill="#00c0c0"/>
+      <rect x="281" y="200" width="38" height="292" fill="#00c000"/>
+      <rect x="319" y="200" width="38" height="292" fill="#c000c0"/>
+      <rect x="357" y="200" width="38" height="292" fill="#c00000"/>
+      <rect x="395" y="200" width="39" height="292" fill="#2419b0"/>
+      <rect x="166" y="200" width="268" height="292" fill="url(#sl)"/>
+    </g>
+
+    <!-- face: slightly-annoyed brows + small googly eyes + smile -->
+    <g stroke="#1a1119" stroke-width="10" stroke-linecap="round" fill="none">
+      <path d="M212 258 Q252 266 296 286"/>
+      <path d="M304 286 Q348 266 388 258"/>
+    </g>
+    <g>
+      <circle cx="256" cy="334" r="40" fill="#ffffff" stroke="#1a1119" stroke-width="5"/>
+      <circle cx="259" cy="336" r="16" fill="#1a1119"/>
+      <circle cx="252" cy="328" r="6" fill="#ffffff"/>
+      <circle cx="344" cy="334" r="40" fill="#ffffff" stroke="#1a1119" stroke-width="5"/>
+      <circle cx="341" cy="336" r="16" fill="#1a1119"/>
+      <circle cx="334" cy="328" r="6" fill="#ffffff"/>
+    </g>
+    <path d="M256 404 Q300 436 344 404" stroke="#1a1119" stroke-width="12" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

@@ -1146,7 +1146,9 @@ select:focus-visible {
   pointer-events: none;
   transform-origin: bottom left;
   filter: drop-shadow(0 0 60px rgba(255, 184, 209, 0.35));
-  animation: splash-mascot-peek 0.8s var(--ease) both;
+  animation:
+    splash-mascot-peek 0.8s var(--ease) both,
+    splash-mascot-idle 3.6s ease-in-out 0.8s infinite;
 }
 @keyframes splash-mascot-peek {
   from {
@@ -1156,6 +1158,15 @@ select:focus-visible {
   to {
     opacity: 1;
     transform: translate(0, 0) rotate(-6deg);
+  }
+}
+@keyframes splash-mascot-idle {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-6deg);
+  }
+  50% {
+    transform: translate(0, -9px) rotate(-2.5deg);
   }
 }
 .splash-word {

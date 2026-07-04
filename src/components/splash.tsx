@@ -1,14 +1,14 @@
 import { useEffect } from "react";
-import mascotHello from "../assets/mascot-hello.webp";
+import mascotSignal from "../assets/mascot-signal.svg";
 import { useT } from "../i18n";
 import { playSfx } from "../lib/sfx";
 
 const VERSION = __APP_VERSION__;
 
-// Boot splash — the animated Signal mascot (waves hello) peeks in large from the
-// lower-left edge of the window, with the RGB-glitch CLIPLY wordmark
-// (burst-on-mount) + mono badge centered on the dark broadcast field. Plays the
-// clip chime on mount.
+// Boot splash — the Signal mascot (crisp brand SVG, gentle idle bob) peeks in
+// large from the lower-left edge of the window, with the RGB-glitch CLIPLY
+// wordmark (burst-on-mount) + mono badge centered on the dark broadcast field.
+// Plays the clip chime on mount.
 export function Splash({ onDone }: { onDone: () => void }) {
   const { t } = useT();
 
@@ -26,7 +26,7 @@ export function Splash({ onDone }: { onDone: () => void }) {
       <span aria-hidden="true" className="bx-grain splash-lines" />
 
       <img
-        src={mascotHello}
+        src={mascotSignal}
         className="splash-mascot"
         alt=""
         aria-hidden="true"
