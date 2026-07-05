@@ -1,15 +1,34 @@
-<p align="center">
-  <img src="docs/mascot.svg" alt="Cliply Signal mascot" width="150" />
-</p>
+<table border="0">
+  <tr>
+    <td valign="middle">
+      <img src="docs/logo.svg" alt="cliply" width="72" />
+      <h1>Cliply&nbsp;Exporter</h1>
+      <p>
+        <b>Open-source desktop clip cutter.</b><br />
+        Paste a link, import your analysis XML, review the clips, and export
+        MP4s with ffmpeg — fully offline. No account, no cloud, no telemetry.
+      </p>
+      <p>
+        <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-ffb8d1?style=flat-square" alt="License: Apache-2.0" /></a>
+        <img src="https://img.shields.io/badge/platform-macOS_%7C_Windows_%7C_Linux-8ab0f8?style=flat-square" alt="Platforms: macOS, Windows, Linux" />
+        <img src="https://img.shields.io/badge/runs-offline--first-3ddc84?style=flat-square" alt="Offline-first" />
+      </p>
+      <p>
+        <a href="https://github.com/cliply-video/cliply-exporter/releases/latest"><b>↓&nbsp;Download</b></a>
+        &nbsp;·&nbsp;
+        <a href="https://exporter.cliply.video">Website</a>
+        &nbsp;·&nbsp;
+        <a href="https://cliply.video">cliply.video&nbsp;↗</a>
+      </p>
+    </td>
+    <td valign="middle" width="210" align="center">
+      <img src="docs/mascot.svg" alt="Cliply Signal mascot" width="190" />
+    </td>
+  </tr>
+</table>
 
-<h1 align="center">Cliply Exporter</h1>
-
 <p align="center">
-  Open-source desktop clip cutter — paste a link, import your analysis XML, review the clips, export MP4s with ffmpeg. Fully offline, no account, no cloud, no telemetry.
-</p>
-
-<p align="center">
-  <img src="docs/screenshot.png" alt="Cliply Exporter" width="820" />
+  <img src="docs/home.png" alt="Cliply Exporter — home screen" width="880" />
 </p>
 
 > Want hosting, teams, sharing and live collaboration? See the full app at

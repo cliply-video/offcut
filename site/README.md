@@ -16,7 +16,8 @@ Point any static host at this `site/` directory and set the custom domain
 
 ## Maintenance
 
-Download links + the version label are pinned to the current release
-(`v0.1.0`). Bump them in `index.html` (search `v0.1.0`) when a new version
-ships, or switch the platform buttons to `/releases/latest` for a version-free
-link.
+Download links point at `/releases/latest`, so they're version-free — nothing
+to bump per release. `screenshot.png` is the app's home screen (kept in sync
+with `docs/home.png`); refresh it when the UI changes. The look mirrors the app
+(`src/styles.css`): dark broadcast-OSD palette, Anton + IBM Plex Mono, square
+panels, CRT field.

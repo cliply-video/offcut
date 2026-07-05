@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" role="img" aria-label="cliply">
+  <defs>
+    <linearGradient id="g" x1="16" y1="16" x2="84" y2="84" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff9ecd"/>
+      <stop offset="0.5" stop-color="#b88cf0"/>
+      <stop offset="1" stop-color="#8ab0f8"/>
+    </linearGradient>
+  </defs>
+  <path d="M73.3 26.7 A33 33 0 1 0 73.3 73.3" stroke="url(#g)" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <path d="M44 33 L71 50 L44 67 Z" fill="url(#g)"/>
+</svg>

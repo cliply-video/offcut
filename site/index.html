@@ -15,28 +15,38 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://exporter.cliply.video" />
+    <meta property="og:image" content="https://exporter.cliply.video/screenshot.png" />
+    <meta name="theme-color" content="#1a1822" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
+      /* broadcast OSD skin — mirrors the app (src/styles.css): dark monitor
+         palette, square panels, hairline borders, mono labels, corner brackets,
+         a CRT field. Anton display + IBM Plex Mono labels + Hanken body. */
       :root {
-        --bg: #46415c;
-        --bg-deep: #3a3550;
-        --panel: #534d6b;
-        --panel-2: #5f5979;
-        --border: #6b6488;
-        --text: #f8f8f2;
-        --muted: #cdbfe0;
-        --accent: #ffb8d1;
-        --accent-fg: #2c2440;
-        --brand: linear-gradient(115deg, #ff9ecd 0%, #b88cf0 48%, #8ab0f8 100%);
-        --font-display: "Space Grotesk", system-ui, sans-serif;
-        --font-body: "Hanken Grotesk", system-ui, sans-serif;
+        color-scheme: dark;
+        --bg: #1a1822;
+        --surface: #221f2a;
+        --surface-2: #2a2733;
+        --inset: rgba(255, 255, 255, 0.03);
+        --line: rgba(255, 255, 255, 0.1);
+        --line-2: rgba(255, 255, 255, 0.16);
+        --ink: #f6f4fb;
+        --muted: rgba(255, 255, 255, 0.55);
+        --pink: #ffb8d1;
+        --gold: #e8c200;
+        --win: #3ddc84;
+        --on-accent: #16141b;
+        --display: "Anton", Impact, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+        --body: "Hanken Grotesk", system-ui, sans-serif;
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
       }
       * {
         box-sizing: border-box;
@@ -46,21 +56,25 @@
       }
       body {
         margin: 0;
-        font-family: var(--font-body);
-        color: var(--text);
-        background: var(--bg-deep);
+        font-family: var(--body);
+        color: var(--ink);
+        background: var(--bg);
         overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
       }
+      /* CRT field: scanlines + grain, fixed behind everything */
       body::before {
         content: "";
         position: fixed;
-        inset: -20%;
+        inset: 0;
         z-index: 0;
         pointer-events: none;
-        background:
-          radial-gradient(40% 38% at 16% 6%, color-mix(in srgb, #ff9ecd, transparent 80%), transparent 70%),
-          radial-gradient(44% 40% at 88% 12%, color-mix(in srgb, #8ab0f8, transparent 82%), transparent 70%),
-          radial-gradient(50% 46% at 72% 94%, color-mix(in srgb, #b88cf0, transparent 84%), transparent 72%);
+        opacity: 0.15;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent 0 2px,
+          rgba(0, 0, 0, 0.22) 2px 3px
+        );
       }
       body::after {
         content: "";
@@ -68,8 +82,9 @@
         inset: 0;
         z-index: 0;
         pointer-events: none;
-        opacity: 0.045;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        opacity: 0.05;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
       }
       .wrap {
         position: relative;
@@ -81,14 +96,22 @@
       a {
         color: inherit;
       }
-      .gradient {
-        background: var(--brand);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+      .accent {
+        color: var(--pink);
       }
 
-      /* nav */
+      /* ---- OSD label / eyebrow ---- */
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--pink);
+        margin: 0;
+      }
+
+      /* ---- nav ---- */
       nav {
         position: relative;
         z-index: 2;
@@ -96,254 +119,392 @@
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-        padding: 20px 24px;
+        padding: 16px 24px;
         max-width: 1080px;
         margin: 0 auto;
         flex-wrap: wrap;
+        border-bottom: 1px solid var(--line);
       }
       .logo {
         display: inline-flex;
         align-items: center;
-        gap: 9px;
-        font-family: var(--font-display);
+        gap: 11px;
+      }
+      .logo svg {
+        width: 30px;
+        height: 30px;
+        color: var(--pink);
+        overflow: visible;
+      }
+      .logo .wm {
+        font-family: var(--mono);
         font-weight: 700;
-        font-size: 21px;
-        letter-spacing: -0.03em;
-        text-transform: lowercase;
+        font-size: 16px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        line-height: 1;
       }
       .logo .tag {
-        margin-left: 6px;
-        font-size: 10px;
-        letter-spacing: 0.14em;
-        color: var(--muted);
-        vertical-align: super;
+        margin-left: 9px;
+        padding: 2px 5px;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--pink);
+        border: 1px solid color-mix(in srgb, var(--pink), transparent 60%);
+        vertical-align: middle;
       }
       .navlinks {
         display: flex;
         align-items: center;
         gap: 18px;
-        font-size: 14px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
       }
       .navlinks a {
         color: var(--muted);
         text-decoration: none;
+        transition: color 0.15s var(--ease);
       }
       .navlinks a:hover {
-        color: var(--text);
+        color: var(--ink);
       }
       .langtoggle {
         display: inline-flex;
-        border: 1px solid color-mix(in srgb, var(--border), transparent 40%);
-        border-radius: 999px;
-        overflow: hidden;
+        border: 1px solid var(--line-2);
       }
       .langtoggle button {
         border: 0;
         background: transparent;
         color: var(--muted);
-        padding: 5px 11px;
-        font: 700 12px/1 var(--font-body);
-        letter-spacing: 0.04em;
+        padding: 6px 10px;
+        font: 500 10px/1 var(--mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
         cursor: pointer;
       }
       .langtoggle button.on {
-        background: var(--brand);
-        color: var(--accent-fg);
+        background: color-mix(in srgb, var(--pink), transparent 86%);
+        color: var(--pink);
       }
 
-      /* buttons (match cliply.video) */
+      /* ---- buttons (square OSD) ---- */
       .btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-family: var(--font-body);
-        font-weight: 600;
-        font-size: 15px;
+        font-family: var(--mono);
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
         text-decoration: none;
-        border-radius: 6px;
+        border-radius: 0;
         padding: 11px 18px;
-        border: 1px solid color-mix(in srgb, var(--border), transparent 25%);
-        background: var(--panel-2);
-        color: var(--text);
-        transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+        border: 1px solid var(--line-2);
+        background: var(--surface);
+        color: var(--ink);
+        transition:
+          background-color 0.15s var(--ease),
+          border-color 0.15s var(--ease),
+          transform 0.1s var(--ease);
         cursor: pointer;
       }
       .btn:hover {
-        transform: translateY(-1px);
-        background: color-mix(in srgb, var(--panel-2), white 7%);
+        background: var(--surface-2);
+      }
+      .btn:active {
+        transform: scale(0.98);
       }
       .btn.primary {
-        background: var(--accent);
-        color: var(--accent-fg);
-        border-color: transparent;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+        background: var(--pink);
+        color: var(--on-accent);
+        border-color: var(--pink);
+        font-weight: 600;
       }
       .btn.primary:hover {
-        background: color-mix(in srgb, var(--accent), black 7%);
-        box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--accent), transparent 35%);
+        background: color-mix(in srgb, var(--pink), white 10%);
+        border-color: color-mix(in srgb, var(--pink), white 10%);
       }
       .btn.lg {
-        font-size: 16px;
+        font-size: 13px;
         padding: 14px 22px;
       }
 
-      /* hero */
+      /* ---- hero ---- */
       .hero {
-        padding: 84px 0 64px;
-        text-align: center;
+        padding: 76px 0 40px;
       }
-      .eyebrow {
-        font-family: var(--font-display);
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--accent);
+      .hero .eyebrow {
+        margin-bottom: 18px;
       }
       h1 {
-        font-family: var(--font-display);
-        font-weight: 700;
-        letter-spacing: -0.035em;
-        line-height: 0.98;
-        font-size: clamp(40px, 8vw, 84px);
-        margin: 16px 0 0;
+        font-family: var(--display);
+        font-weight: 400;
+        letter-spacing: 0.005em;
+        line-height: 0.92;
+        text-transform: uppercase;
+        font-size: clamp(44px, 8.5vw, 92px);
+        margin: 0;
       }
       .lead {
-        font-size: clamp(16px, 1.8vw, 20px);
+        font-size: clamp(15px, 1.7vw, 19px);
         color: var(--muted);
-        max-width: 58ch;
-        margin: 26px auto 0;
+        max-width: 56ch;
+        margin: 26px 0 0;
         line-height: 1.6;
       }
       .cta {
         display: flex;
         gap: 12px;
-        justify-content: center;
         flex-wrap: wrap;
-        margin-top: 36px;
+        align-items: center;
+        margin-top: 34px;
       }
       .cta .sub {
-        margin-top: 14px;
-        font-size: 13px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         color: var(--muted);
         width: 100%;
+        margin-top: 6px;
+      }
+      .cta .sub a {
+        color: var(--pink);
+        text-decoration: none;
       }
 
-      /* sections */
-      section {
-        padding: 72px 0;
+      /* ---- screenshot in a monitor frame ---- */
+      .shot {
+        position: relative;
+        z-index: 1;
+        max-width: 1080px;
+        margin: 44px auto 0;
+        padding: 0 24px;
       }
-      section + section {
-        padding-top: 0;
+      .monitor {
+        position: relative;
+        border: 1px solid var(--line-2);
+        background: var(--bg);
+        box-shadow: 0 40px 120px -40px rgba(0, 0, 0, 0.9);
+      }
+      .monitor img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .monitor .osd {
+        position: absolute;
+        top: -1px;
+        left: -1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 11px;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: color-mix(in srgb, var(--bg), transparent 10%);
+        border: 1px solid var(--line-2);
+        z-index: 2;
+      }
+      .monitor .rec {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--pink);
+        animation: blink 1.2s steps(1) infinite;
+      }
+      @keyframes blink {
+        0%,
+        60% {
+          opacity: 1;
+        }
+        61%,
+        100% {
+          opacity: 0.15;
+        }
+      }
+      .corners i {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        pointer-events: none;
+        border-color: var(--pink);
+        z-index: 2;
+      }
+      .corners .tl {
+        top: 7px;
+        left: 7px;
+        border-top: 2px solid;
+        border-left: 2px solid;
+      }
+      .corners .tr {
+        top: 7px;
+        right: 7px;
+        border-top: 2px solid;
+        border-right: 2px solid;
+      }
+      .corners .bl {
+        bottom: 7px;
+        left: 7px;
+        border-bottom: 2px solid;
+        border-left: 2px solid;
+      }
+      .corners .br {
+        bottom: 7px;
+        right: 7px;
+        border-bottom: 2px solid;
+        border-right: 2px solid;
+      }
+
+      /* ---- sections ---- */
+      section {
+        padding: 76px 0 0;
+      }
+      .sec-head {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 16px;
+        margin-bottom: 34px;
+        flex-wrap: wrap;
       }
       h2 {
-        font-family: var(--font-display);
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        font-size: clamp(26px, 3.4vw, 38px);
-        text-align: center;
-        margin: 0 0 12px;
+        font-family: var(--display);
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        font-size: clamp(26px, 3.6vw, 40px);
+        margin: 0;
+        line-height: 1;
       }
-      .sub2 {
-        text-align: center;
+      .sec-head .sub2 {
         color: var(--muted);
-        margin: 0 auto 40px;
-        max-width: 52ch;
-        line-height: 1.55;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0;
       }
       .grid {
         display: grid;
-        gap: 18px;
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
       }
       .steps,
-      .features,
-      .downloads {
+      .features {
         grid-template-columns: repeat(3, 1fr);
       }
       .card {
-        background: color-mix(in srgb, var(--panel), transparent 18%);
-        border: 1px solid color-mix(in srgb, var(--border), transparent 40%);
-        border-radius: 16px;
+        position: relative;
+        background: var(--surface);
         padding: 26px;
+        transition: background-color 0.15s var(--ease);
+      }
+      .card:hover {
+        background: var(--surface-2);
       }
       .card .n {
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 30px;
-        background: var(--brand);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+        font-family: var(--mono);
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        color: var(--gold);
       }
       .card h3 {
-        font-family: var(--font-display);
-        margin: 12px 0 8px;
-        font-size: 17px;
+        font-family: var(--mono);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 14px 0 8px;
+        font-size: 14px;
       }
       .card p {
         margin: 0;
         color: var(--muted);
         font-size: 14px;
-        line-height: 1.55;
+        line-height: 1.6;
+      }
+
+      /* ---- downloads ---- */
+      .downloads {
+        grid-template-columns: repeat(3, 1fr);
       }
       .dlcard {
-        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 28px 26px;
       }
       .dlcard .os {
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 18px;
-        margin-bottom: 4px;
+        font-family: var(--display);
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        font-size: 26px;
       }
       .dlcard .meta {
         color: var(--muted);
-        font-size: 13px;
-        margin-bottom: 16px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+      }
+      .dlcard .btn {
+        margin-top: auto;
+        justify-content: center;
       }
       .dlcard .alt {
         display: block;
         margin-top: 10px;
-        font-size: 12px;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         color: var(--muted);
+        text-decoration: none;
       }
-      .note {
-        max-width: 64ch;
-        margin: 36px auto 0;
-        text-align: center;
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.65;
+      .dlcard .alt:hover {
+        color: var(--ink);
       }
 
       .callout {
-        max-width: 640px;
-        margin: 40px auto 0;
-        text-align: left;
-        background: color-mix(in srgb, var(--panel), transparent 22%);
-        border: 1px solid color-mix(in srgb, var(--border), transparent 35%);
-        border-left: 3px solid var(--accent);
-        border-radius: 14px;
+        margin: 28px 0 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 2px solid var(--pink);
         padding: 22px 24px;
         transition: box-shadow 0.2s ease;
       }
       .callout.hot {
-        box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent), transparent 55%);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pink), transparent 60%);
       }
       .callout h3 {
-        font-family: var(--font-display);
-        font-size: 17px;
-        margin: 0 0 8px;
+        font-family: var(--mono);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 13px;
+        margin: 0 0 10px;
       }
       .callout p {
         color: var(--muted);
         font-size: 14px;
-        line-height: 1.55;
+        line-height: 1.6;
         margin: 8px 0;
       }
       .callout ol {
         color: var(--muted);
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.65;
         margin: 8px 0;
         padding-left: 20px;
       }
@@ -351,27 +512,34 @@
         margin: 5px 0;
       }
       .callout strong {
-        color: var(--text);
+        color: var(--ink);
       }
       code.cmd {
         display: block;
-        margin-top: 8px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        margin-top: 10px;
+        font-family: var(--mono);
         font-size: 12.5px;
-        background: var(--bg-deep);
-        border: 1px solid color-mix(in srgb, var(--border), transparent 40%);
-        border-radius: 8px;
-        padding: 11px 13px;
-        color: var(--text);
+        background: var(--inset);
+        border: 1px solid var(--line-2);
+        padding: 12px 13px;
+        color: var(--ink);
         overflow-x: auto;
         user-select: all;
       }
+      .note {
+        margin: 24px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
+      }
 
+      /* ---- footer ---- */
       footer {
         position: relative;
         z-index: 1;
-        border-top: 1px solid color-mix(in srgb, var(--border), transparent 55%);
-        padding: 28px 0 44px;
+        margin-top: 76px;
+        border-top: 1px solid var(--line);
+        padding: 24px 0 40px;
       }
       .footrow {
         display: flex;
@@ -380,14 +548,17 @@
         gap: 16px;
         flex-wrap: wrap;
         color: var(--muted);
-        font-size: 13px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
       }
       .footrow a {
         color: var(--muted);
         text-decoration: none;
       }
       .footrow a:hover {
-        color: var(--text);
+        color: var(--pink);
       }
 
       @media (max-width: 760px) {
@@ -397,7 +568,12 @@
           grid-template-columns: 1fr;
         }
         section {
-          padding: 56px 0;
+          padding-top: 56px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .monitor .rec {
+          animation: none;
         }
       }
     </style>
@@ -405,18 +581,11 @@
   <body>
     <nav>
       <span class="logo">
-        <svg width="30" height="30" viewBox="0 0 100 100" fill="none" aria-label="cliply">
-          <defs>
-            <linearGradient id="g" x1="16" y1="16" x2="84" y2="84" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#ff9ecd" />
-              <stop offset="0.5" stop-color="#b88cf0" />
-              <stop offset="1" stop-color="#8ab0f8" />
-            </linearGradient>
-          </defs>
-          <path d="M73.3 26.7 A33 33 0 1 0 73.3 73.3" stroke="url(#g)" stroke-width="9" stroke-linecap="round" fill="none" />
-          <path d="M44 33 L71 50 L44 67 Z" fill="url(#g)" stroke="url(#g)" stroke-width="6" stroke-linejoin="round" />
+        <svg viewBox="0 0 100 100" fill="none" aria-label="cliply">
+          <path d="M73.3 26.7 A33 33 0 1 0 73.3 73.3" stroke="currentColor" stroke-width="9" stroke-linecap="round" fill="none" />
+          <path d="M44 33 L71 50 L44 67 Z" fill="currentColor" />
         </svg>
-        cli<span class="gradient">ply</span><span class="tag">exporter</span>
+        <span class="wm">Cliply</span><span class="tag">Exporter</span>
       </span>
       <span class="navlinks">
         <a href="#features" data-i18n="nav.features">Features</a>
@@ -432,7 +601,7 @@
 
     <header class="hero wrap">
       <p class="eyebrow" data-i18n="hero.eyebrow">Open-source · 100% offline</p>
-      <h1><span data-i18n="hero.titleA">Turn a match into</span><br /><span class="gradient" data-i18n="hero.titleB">shareable clips.</span></h1>
+      <h1><span data-i18n="hero.titleA">Turn a match into</span><br /><span class="accent" data-i18n="hero.titleB">shareable clips.</span></h1>
       <p class="lead" data-i18n="hero.lead">
         Paste a YouTube link, drop in your SportsCode / Nacsport analysis XML, and
         export ready-to-cut MP4s — folders per tag and reels included. No account,
@@ -445,8 +614,19 @@
       </div>
     </header>
 
+    <div class="shot">
+      <div class="monitor">
+        <span class="osd"><span class="rec"></span> <span data-i18n="shot.label">The app · home screen</span></span>
+        <span class="corners"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></span>
+        <img src="screenshot.png" alt="Cliply Exporter — home screen" width="2000" height="775" loading="lazy" />
+      </div>
+    </div>
+
     <section class="wrap">
-      <h2 data-i18n="how.h2">How it works</h2>
+      <div class="sec-head">
+        <h2 data-i18n="how.h2">How it works</h2>
+        <p class="sub2" data-i18n="how.sub">Three steps, start to finished clips.</p>
+      </div>
       <div class="grid steps">
         <div class="card">
           <div class="n">01</div>
@@ -467,8 +647,10 @@
     </section>
 
     <section id="features" class="wrap">
-      <h2 data-i18n="feat.h2">Built for analysts</h2>
-      <p class="sub2" data-i18n="feat.sub">Everything runs on your machine. No sign-up, no upload, no telemetry.</p>
+      <div class="sec-head">
+        <h2 data-i18n="feat.h2">Built for analysts</h2>
+        <p class="sub2" data-i18n="feat.sub">Everything runs on your machine. No sign-up, no upload, no telemetry.</p>
+      </div>
       <div class="grid features">
         <div class="card"><h3 data-i18n="f1.t">100% offline</h3><p data-i18n="f1.d">Nothing leaves your computer. Works on the plane, on the bus, at the pitch.</p></div>
         <div class="card"><h3 data-i18n="f2.t">Your tags, your colors</h3><p data-i18n="f2.d">Reads the colors and codes straight from your analysis XML.</p></div>
@@ -480,24 +662,26 @@
     </section>
 
     <section id="download" class="wrap">
-      <h2 data-i18n="dl.h2">Download</h2>
-      <p class="sub2" data-i18n="dl.sub">Latest release · v0.1.0 · free forever.</p>
+      <div class="sec-head">
+        <h2 data-i18n="dl.h2">Download</h2>
+        <p class="sub2" id="dl-sub2" data-i18n="dl.sub">Latest release · free forever.</p>
+      </div>
       <div class="grid downloads">
         <div class="card dlcard">
           <div class="os">macOS</div>
           <div class="meta" data-i18n="dl.macMeta">Universal · Intel &amp; Apple Silicon</div>
-          <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/download/v0.1.0/Cliply.Exporter_0.1.0_universal.dmg" data-i18n="dl.dmg">Download .dmg</a>
+          <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.get">Download</a>
         </div>
         <div class="card dlcard">
           <div class="os">Windows</div>
           <div class="meta" data-i18n="dl.winMeta">64-bit installer</div>
-          <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/download/v0.1.0/Cliply.Exporter_0.1.0_x64-setup.exe" data-i18n="dl.exe">Download .exe</a>
+          <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.get">Download</a>
         </div>
         <div class="card dlcard">
           <div class="os">Linux</div>
           <div class="meta" data-i18n="dl.linuxMeta">AppImage or Debian package</div>
-          <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/download/v0.1.0/Cliply.Exporter_0.1.0_amd64.AppImage" data-i18n="dl.appimage">Download .AppImage</a>
-          <a class="alt" href="https://github.com/cliply-video/cliply-exporter/releases/download/v0.1.0/Cliply.Exporter_0.1.0_amd64.deb" data-i18n="dl.deb">or get the .deb</a>
+          <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.get">Download</a>
+          <a class="alt" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.all">All builds ↗</a>
         </div>
       </div>
       <div class="callout" id="macnote">
@@ -532,6 +716,8 @@
     </footer>
 
     <script>
+      var RELEASES = "https://github.com/cliply-video/cliply-exporter/releases/latest";
+
       var I18N = {
         en: {
           "nav.features": "Features",
@@ -543,7 +729,9 @@
           "hero.download": "Download",
           "hero.github": "View on GitHub",
           "hero.sub": "Free & open-source · macOS · Windows · Linux",
+          "shot.label": "The app · home screen",
           "how.h2": "How it works",
+          "how.sub": "Three steps, start to finished clips.",
           "s1.t": "Paste a link",
           "s1.d": "Any YouTube URL or video ID — downloaded locally with yt-dlp.",
           "s2.t": "Import XML",
@@ -565,14 +753,12 @@
           "f6.t": "Open-source",
           "f6.d": "Apache-2.0. Powered by cliply's clip engine. Inspect it, fork it, ship it.",
           "dl.h2": "Download",
-          "dl.sub": "Latest release · v0.1.0 · free forever.",
+          "dl.sub": "Latest release · free forever.",
           "dl.macMeta": "Universal · Intel & Apple Silicon",
-          "dl.dmg": "Download .dmg",
           "dl.winMeta": "64-bit installer",
-          "dl.exe": "Download .exe",
           "dl.linuxMeta": "AppImage or Debian package",
-          "dl.appimage": "Download .AppImage",
-          "dl.deb": "or get the .deb",
+          "dl.get": "Download",
+          "dl.all": "All builds ↗",
           "mac.h": "Running it on macOS",
           "mac.lead": "Cliply Exporter isn't notarized yet, so macOS blocks unsigned apps the first time. One-time fix:",
           "mac.s1": "Open the .dmg and drag <strong>Cliply Exporter</strong> into Applications.",
@@ -585,7 +771,7 @@
           "foot.cloud": "Need cloud, teams & live sharing?",
           "dl.for": "Download for ",
           "dl.also": "Free & open-source · also on ",
-          "dl.all": "all downloads",
+          "dl.allInline": "all downloads",
         },
         es: {
           "nav.features": "Funciones",
@@ -597,7 +783,9 @@
           "hero.download": "Descargar",
           "hero.github": "Ver en GitHub",
           "hero.sub": "Gratis y código abierto · macOS · Windows · Linux",
+          "shot.label": "La app · pantalla de inicio",
           "how.h2": "Cómo funciona",
+          "how.sub": "Tres pasos, del link a los clips listos.",
           "s1.t": "Pegá un enlace",
           "s1.d": "Cualquier URL de YouTube o ID de video — se descarga local con yt-dlp.",
           "s2.t": "Importá XML",
@@ -619,14 +807,12 @@
           "f6.t": "Código abierto",
           "f6.d": "Apache-2.0. Con el motor de clips de cliply. Miralo, forkealo, publicalo.",
           "dl.h2": "Descargar",
-          "dl.sub": "Última versión · v0.1.0 · gratis para siempre.",
+          "dl.sub": "Última versión · gratis para siempre.",
           "dl.macMeta": "Universal · Intel y Apple Silicon",
-          "dl.dmg": "Descargar .dmg",
           "dl.winMeta": "Instalador 64-bit",
-          "dl.exe": "Descargar .exe",
           "dl.linuxMeta": "AppImage o paquete Debian",
-          "dl.appimage": "Descargar .AppImage",
-          "dl.deb": "o bajá el .deb",
+          "dl.get": "Descargar",
+          "dl.all": "Todas las builds ↗",
           "mac.h": "Cómo abrirla en macOS",
           "mac.lead": "Cliply Exporter todavía no está notarizada, así que macOS bloquea apps sin firmar la primera vez. Solución (una sola vez):",
           "mac.s1": "Abrí el .dmg y arrastrá <strong>Cliply Exporter</strong> a Aplicaciones.",
@@ -639,17 +825,15 @@
           "foot.cloud": "¿Nube, equipos y compartir en vivo?",
           "dl.for": "Descargar para ",
           "dl.also": "Gratis y código abierto · también en ",
-          "dl.all": "todas las descargas",
+          "dl.allInline": "todas las descargas",
         },
       };
 
-      var DL_BASE = "https://github.com/cliply-video/cliply-exporter/releases/download/v0.1.0/";
-
       function osInfo() {
         var ua = navigator.userAgent;
-        if (/Mac/i.test(ua)) return { name: "macOS", file: "Cliply.Exporter_0.1.0_universal.dmg", others: ["Windows", "Linux"] };
-        if (/Windows/i.test(ua)) return { name: "Windows", file: "Cliply.Exporter_0.1.0_x64-setup.exe", others: ["macOS", "Linux"] };
-        if (/Linux/i.test(ua) && !/Android/i.test(ua)) return { name: "Linux", file: "Cliply.Exporter_0.1.0_amd64.AppImage", others: ["macOS", "Windows"] };
+        if (/Mac/i.test(ua)) return { name: "macOS", others: ["Windows", "Linux"] };
+        if (/Windows/i.test(ua)) return { name: "Windows", others: ["macOS", "Linux"] };
+        if (/Linux/i.test(ua) && !/Android/i.test(ua)) return { name: "Linux", others: ["macOS", "Windows"] };
         return null;
       }
 
@@ -667,15 +851,16 @@
         document.querySelectorAll(".langtoggle button").forEach(function (b) {
           b.classList.toggle("on", b.getAttribute("data-lang") === lang);
         });
-        // OS-aware primary download (after text is applied).
+        // OS-aware primary download (after text is applied). Always points at the
+        // latest GitHub release — never a version-pinned asset URL.
         var os = osInfo();
         if (os) {
           var btn = document.getElementById("primary-dl");
           btn.textContent = dict["dl.for"] + os.name;
-          btn.href = DL_BASE + os.file;
+          btn.href = RELEASES;
           document.getElementById("dl-sub").innerHTML =
             dict["dl.also"] + os.others.join(" & ") +
-            " — <a href='#download' style='color:var(--accent)'>" + dict["dl.all"] + "</a>";
+            " — <a href='#download'>" + dict["dl.allInline"] + "</a>";
         }
         var callout = document.querySelector(".callout");
         if (callout) callout.classList.toggle("hot", !!(os && os.name === "macOS"));
