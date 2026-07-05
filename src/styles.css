@@ -1106,7 +1106,25 @@ select:focus-visible {
 .splash-lockup {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
+}
+/* the iso (C-ring + play mark) sits left of the CLIPLY wordmark, sized to the
+   cap height; its signal arcs auto-transmit on boot (no cursor to hover). */
+.splash-mark {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  color: var(--pink);
+  overflow: visible;
+}
+.splash-lockup .bx-signal-wave {
+  animation: bx-signal 0.6s ease-out infinite;
+}
+.splash-lockup .bx-signal-2 {
+  animation-delay: 0.16s;
+}
+.splash-lockup .bx-signal-3 {
+  animation-delay: 0.32s;
 }
 /* Mascot peeks in large from the lower-left, part of it off the window edge,
    tilted as if leaning in. */
@@ -1238,6 +1256,7 @@ select:focus-visible {
   .stage > *,
   .splash-stage,
   .splash-mascot,
+  .splash-lockup .bx-signal-wave,
   .bx-boot-bar {
     animation: none;
   }

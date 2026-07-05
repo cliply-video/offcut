@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import mascotSignal from "../assets/mascot-signal.svg";
 import { useT } from "../i18n";
 import { playSfx } from "../lib/sfx";
+import { LogoMark } from "./logo";
 
 const VERSION = __APP_VERSION__;
 
@@ -34,6 +35,7 @@ export function Splash({ onDone }: { onDone: () => void }) {
 
       <div className="splash-stage">
         <div className="splash-lockup bx-glitch-auto">
+          <LogoMark className="splash-mark" />
           <span className="splash-word bx-glitch">
             <span aria-hidden="true" className="bx-glitch-layer bx-glitch-a">
               CLIPLY
