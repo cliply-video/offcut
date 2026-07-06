@@ -1,19 +1,12 @@
-<table border="0" width="100%">
-  <tr>
-    <td valign="middle" align="left">
-      <img src="docs/logo-horizontal.svg" alt="Cliply Exporter" width="300" />
-    </td>
-    <td valign="middle" align="right">
-      <img src="docs/mascot.svg" alt="Cliply Signal mascot" width="140" />
-    </td>
-  </tr>
-</table>
+<img src="docs/mascot.svg" align="right" width="150" alt="Cliply Signal mascot" />
 
-<p>
-  <b>Open-source desktop clip cutter.</b><br />
-  Paste a link, import your analysis XML, review the clips, and export
-  MP4s with ffmpeg — fully offline. No account, no cloud, no telemetry.
-</p>
+<img src="docs/logo.svg" width="72" alt="cliply" />
+
+# Cliply&nbsp;Exporter
+
+<b>Open-source desktop clip cutter.</b><br />
+Paste a link, import your analysis XML, review the clips, and export
+MP4s with ffmpeg — fully offline. No account, no cloud, no telemetry.
 
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-ffb8d1?style=flat-square" alt="License: Apache-2.0" /></a>
