@@ -1,6 +1,9 @@
 <img src="docs/mascot.svg" align="right" width="150" alt="Cliply Signal mascot" />
 
-<img src="docs/logo.svg" width="72" alt="cliply" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/lockup.png" />
+  <img src="docs/lockup-ink.png" width="300" alt="Cliply" />
+</picture>
 
 # Cliply&nbsp;Exporter
 
