@@ -18,9 +18,13 @@ function GitHubIcon() {
 export function Shell({
   children,
   step,
+  reached,
+  onNavigate,
 }: {
   children: ReactNode;
   step?: 1 | 2 | 3;
+  reached?: 1 | 2 | 3;
+  onNavigate?: (n: 1 | 2 | 3) => void;
 }) {
   const { t, locale, setLocale } = useT();
   return (
@@ -57,7 +61,13 @@ export function Shell({
         </nav>
       </header>
 
-      {step && <Stepper current={step} />}
+      {step && (
+        <Stepper
+          current={step}
+          reached={reached ?? step}
+          onNavigate={onNavigate}
+        />
+      )}
 
       <main className="shell-main">{children}</main>
 

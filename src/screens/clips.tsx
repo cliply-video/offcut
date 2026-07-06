@@ -6,7 +6,6 @@ import {
   DownloadIcon,
   FilmIcon,
   PlayIcon,
-  PlusIcon,
 } from "../components/icons";
 import { useT } from "../i18n";
 import { type ExportClip, generatePoster } from "../lib/api";
@@ -112,8 +111,8 @@ export function Clips({
     <div style={{ padding: "20px 28px" }}>
       <div className="clips-bar">
         <button type="button" className="ghost" onClick={onBack}>
-          <PlusIcon size={13} />
-          {t("clips.newVideo")}
+          <CloseIcon size={12} />
+          {t("clips.discard")}
         </button>
         <div className="row" style={{ gap: 10 }}>
           <span className="count-chip">

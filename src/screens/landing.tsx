@@ -1,5 +1,6 @@
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useState } from "react";
+import { ArrowRightIcon } from "../components/icons";
 import { useT } from "../i18n";
 import { deleteMedia } from "../lib/api";
 import {
@@ -65,9 +66,10 @@ export function Landing({
 
         {error && <p style={{ color: "var(--destructive)", margin: 0 }}>{error}</p>}
 
-        <div className="row">
-          <button type="button" className="primary btn-lg" onClick={onStart}>
+        <div className="hero-cta-row">
+          <button type="button" className="primary hero-cta" onClick={onStart}>
             {t("home.start")}
+            <ArrowRightIcon size={17} />
           </button>
         </div>
 

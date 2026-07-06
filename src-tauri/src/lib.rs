@@ -51,6 +51,7 @@ pub fn run() {
             download::download_url,
             download::cancel_download,
             media::read_xml_file,
+            media::fetch_xml_url,
             media::generate_poster,
             media::copy_file,
             media::probe_media,

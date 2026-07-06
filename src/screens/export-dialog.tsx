@@ -190,69 +190,90 @@ export function ExportDialog({
     prog && prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0;
 
   return (
-    <div className="scrim">
-      <div className="card" ref={modalRef} tabIndex={-1}>
+    <div className="drawer-scrim" onClick={dismiss}>
+      <div
+        className="drawer"
+        ref={modalRef}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
         <Corners />
-        <h2>{t("export.title", { n: clips.length })}</h2>
-
-        {phase === "config" && info?.vcodec && (
-          <p className="muted" style={{ fontSize: 12, margin: "0 0 4px" }}>
-            {t("export.source", {
-              codec: info.vcodec.toUpperCase(),
-              dur: fmtDur(info.durationSec),
-            })}
-          </p>
-        )}
+        <div className="drawer-head">
+          <h2>{t("export.title", { n: clips.length })}</h2>
+          {phase === "config" && info?.vcodec && (
+            <p className="muted" style={{ fontSize: 12, margin: "6px 0 0" }}>
+              {t("export.source", {
+                codec: info.vcodec.toUpperCase(),
+                dur: fmtDur(info.durationSec),
+              })}
+            </p>
+          )}
+        </div>
 
         {phase === "config" && (
           <>
-            <div className="row" style={{ margin: "12px 0" }}>
-              <button type="button" onClick={pickDir}>
-                <FolderIcon size={13} />
-                {t("export.chooseFolder")}
-              </button>
-              <span className="muted" style={{ fontSize: 12 }}>
-                {outDir ?? t("export.noFolder")}
-              </span>
-            </div>
-
-            <Switch
-              checked={individual}
-              onChange={setIndividual}
-              label={t("export.individual")}
-            />
-
-            <div className="field">
-              <span className="field-label">{t("export.reels")}</span>
-              <div className="seg" role="radiogroup" aria-label={t("export.reels")}>
-                {REEL_MODES.map((m) => (
-                  <button
-                    key={m.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={reelMode === m.value}
-                    className={reelMode === m.value ? "on" : ""}
-                    onClick={() => setReelMode(m.value)}
-                  >
-                    {t(m.labelKey)}
+            <div className="drawer-body">
+              <div className="field">
+                <span className="field-label">{t("export.outFolder")}</span>
+                <div className="row">
+                  <button type="button" onClick={pickDir}>
+                    <FolderIcon size={13} />
+                    {t("export.chooseFolder")}
                   </button>
-                ))}
+                  <span
+                    className="muted"
+                    style={{ fontSize: 12, wordBreak: "break-all" }}
+                  >
+                    {outDir ?? t("export.noFolder")}
+                  </span>
+                </div>
               </div>
-              <span className="field-hint">
-                {t(REEL_MODES.find((m) => m.value === reelMode)?.hintKey ?? "")}
-              </span>
+
+              <div className="field field--switch">
+                <Switch
+                  checked={individual}
+                  onChange={setIndividual}
+                  label={t("export.individual")}
+                />
+                <span className="field-hint">{t("export.individualHint")}</span>
+              </div>
+
+              <div className="field">
+                <span className="field-label">{t("export.reels")}</span>
+                <div
+                  className="seg"
+                  role="radiogroup"
+                  aria-label={t("export.reels")}
+                >
+                  {REEL_MODES.map((m) => (
+                    <button
+                      key={m.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={reelMode === m.value}
+                      className={reelMode === m.value ? "on" : ""}
+                      onClick={() => setReelMode(m.value)}
+                    >
+                      {t(m.labelKey)}
+                    </button>
+                  ))}
+                </div>
+                <span className="field-hint">
+                  {t(REEL_MODES.find((m) => m.value === reelMode)?.hintKey ?? "")}
+                </span>
+              </div>
+
+              <div className="field field--switch">
+                <Switch
+                  checked={reencode}
+                  onChange={setReencode}
+                  label={t("export.reencode")}
+                />
+                <span className="field-hint">{t("export.reencodeHint")}</span>
+              </div>
             </div>
 
-            <Switch
-              checked={reencode}
-              onChange={setReencode}
-              label={t("export.reencode")}
-            />
-
-            <div
-              className="row"
-              style={{ justifyContent: "flex-end", marginTop: 16 }}
-            >
+            <div className="drawer-footer">
               <button type="button" className="ghost" onClick={onClose}>
                 <CloseIcon size={12} />
                 {t("export.cancel")}
@@ -272,26 +293,25 @@ export function ExportDialog({
 
         {phase === "running" && (
           <>
-            <p className="muted">
-              {prog
-                ? t("export.progress", {
-                    verb:
-                      prog.phase === "reel"
-                        ? t("export.buildingReel")
-                        : t("export.cutting"),
-                    label: prog.label,
-                    done: prog.done,
-                    total: prog.total,
-                  })
-                : t("export.starting")}
-            </p>
-            <div className="bar">
-              <span style={{ width: `${pct}%` }} />
+            <div className="drawer-body">
+              <p className="muted">
+                {prog
+                  ? t("export.progress", {
+                      verb:
+                        prog.phase === "reel"
+                          ? t("export.buildingReel")
+                          : t("export.cutting"),
+                      label: prog.label,
+                      done: prog.done,
+                      total: prog.total,
+                    })
+                  : t("export.starting")}
+              </p>
+              <div className="bar">
+                <span style={{ width: `${pct}%` }} />
+              </div>
             </div>
-            <div
-              className="row"
-              style={{ justifyContent: "flex-end", marginTop: 16 }}
-            >
+            <div className="drawer-footer">
               <button
                 type="button"
                 className="ghost"
@@ -307,16 +327,15 @@ export function ExportDialog({
 
         {phase === "done" && summary && (
           <>
-            <p>
-              {t("export.done", {
-                clips: summary.clips,
-                reels: summary.reels,
-              })}
-            </p>
-            <div
-              className="row"
-              style={{ justifyContent: "flex-end", marginTop: 16 }}
-            >
+            <div className="drawer-body">
+              <p>
+                {t("export.done", {
+                  clips: summary.clips,
+                  reels: summary.reels,
+                })}
+              </p>
+            </div>
+            <div className="drawer-footer">
               <button type="button" className="ghost" onClick={onClose}>
                 <CloseIcon size={12} />
                 {t("export.close")}
@@ -335,11 +354,10 @@ export function ExportDialog({
 
         {phase === "error" && (
           <>
-            <p style={{ color: "var(--destructive)" }}>{error}</p>
-            <div
-              className="row"
-              style={{ justifyContent: "flex-end", marginTop: 16 }}
-            >
+            <div className="drawer-body">
+              <p style={{ color: "var(--destructive)" }}>{error}</p>
+            </div>
+            <div className="drawer-footer">
               <button type="button" className="ghost" onClick={onClose}>
                 <CloseIcon size={12} />
                 {t("export.close")}

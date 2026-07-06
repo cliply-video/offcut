@@ -30,6 +30,9 @@ export const cancelDownload = (videoId: string) =>
 export const readXmlFile = (path: string) =>
   invoke<string>("read_xml_file", { path });
 
+export const fetchXmlUrl = (url: string) =>
+  invoke<string>("fetch_xml_url", { url });
+
 export const generatePoster = (clipId: string, src: string, tSec: number) =>
   invoke<string>("generate_poster", { clipId, src, tSec });
 

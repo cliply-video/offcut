@@ -1,7 +1,7 @@
 {
   "name": "cliply-exporter",
   "private": true,
-  "version": "0.2.4",
+  "version": "0.3.1",
   "type": "module",
   "description": "Cliply Exporter — open-source desktop clip cutter: YouTube URL + analysis XML in, MP4 clips out, via ffmpeg.",
   "license": "Apache-2.0",

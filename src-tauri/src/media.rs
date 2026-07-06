@@ -105,6 +105,19 @@ pub fn read_xml_file(path: String) -> Result<String, String> {
     Ok(decode(&buf))
 }
 
+/// Fetches analysis XML over HTTP(S) and decodes it BOM-aware, same as a local
+/// read — lets users point at an XML hosted next to their video instead of a
+/// local file.
+#[tauri::command]
+pub async fn fetch_xml_url(url: String) -> Result<String, String> {
+    let res = reqwest::get(&url).await.map_err(es)?;
+    if !res.status().is_success() {
+        return Err(format!("HTTP {}", res.status().as_u16()));
+    }
+    let bytes = res.bytes().await.map_err(es)?;
+    Ok(decode(&bytes))
+}
+
 fn decode(buf: &[u8]) -> String {
     if buf.starts_with(&[0xff, 0xfe]) {
         let u: Vec<u16> = buf[2..]

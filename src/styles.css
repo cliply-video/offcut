@@ -227,6 +227,16 @@ textarea {
 .stepper-item.done .stepper-line {
   background: color-mix(in srgb, var(--win), transparent 40%);
 }
+.stepper-item.clickable {
+  cursor: pointer;
+}
+.stepper-item.clickable:hover .stepper-badge {
+  border-color: var(--pink);
+  color: var(--ink);
+}
+.stepper-item.clickable:hover .stepper-label {
+  color: var(--ink);
+}
 
 /* ---- logo / wordmark (centered in the titlebar) ---- */
 .logo {
@@ -616,6 +626,29 @@ code {
   display: grid;
   gap: 24px;
 }
+/* Primary entry CTA — oversized so it anchors the hero, left-aligned with the
+   rest of the (left-aligned) hero column and the recents list below. */
+.hero-cta-row {
+  display: flex;
+  justify-content: flex-start;
+  margin: 4px 0;
+}
+.hero-cta {
+  padding: 20px 52px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  gap: 14px;
+  transition:
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease),
+    transform 0.14s var(--ease),
+    box-shadow 0.2s var(--ease);
+}
+.hero-cta:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 38px -12px color-mix(in srgb, var(--pink), transparent 25%);
+}
 /* Flow steps reuse the hero column verbatim, so the eyebrow + title land in the
    same spot on every step (home, import, …) instead of drifting. */
 .hero-step {
@@ -699,18 +732,52 @@ code {
   color: var(--muted);
 }
 
-/* ---- card / panel (setup / import / export) ---- */
-.card {
+/* ---- export drawer (slides in from the right) ---- */
+.drawer {
   position: relative;
-  width: min(560px, 100%);
+  width: min(480px, 100%);
+  height: 100%;
   background: var(--surface);
-  border: 1px solid var(--line);
-  padding: 32px;
-  box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.75);
+  border-left: 1px solid var(--line-2);
+  box-shadow: -28px 0 70px -30px rgba(0, 0, 0, 0.8);
+  /* head / body / footer own their padding so the footer can pin to the
+     bottom while only the body scrolls. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: drawerIn 0.28s var(--ease) both;
 }
-.card > .eyebrow,
-.card > h2 {
+.drawer-head {
   position: relative;
+  flex: 0 0 auto;
+  padding: 40px 32px 8px;
+}
+.drawer-body {
+  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 24px 32px;
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+.drawer-footer {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 32px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+@keyframes drawerIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 /* Runtime-tool checklist on the setup step. */
 .tool-list {
@@ -770,7 +837,7 @@ label.row {
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-  margin: 10px 0;
+  margin: 0;
   padding: 0;
   background: none;
   border: none;
@@ -821,9 +888,10 @@ label.row {
   color: var(--ink);
 }
 
-/* ---- segmented control (reels) ---- */
+/* ---- labelled field (folder / reels / switches in the export drawer) ---- */
 .field {
-  margin: 12px 0;
+  display: grid;
+  gap: 8px;
 }
 .field-label {
   display: block;
@@ -832,7 +900,6 @@ label.row {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 6px;
 }
 .seg {
   display: inline-flex;
@@ -860,9 +927,16 @@ label.row {
 }
 .field-hint {
   display: block;
-  margin-top: 6px;
   font-size: 11px;
+  line-height: 1.45;
   color: var(--muted);
+}
+/* align a switch's hint under its label, past the track */
+.field--switch {
+  gap: 6px;
+}
+.field--switch .field-hint {
+  padding-left: 46px;
 }
 
 /* ---- clips toolbar ---- */
@@ -1123,16 +1197,15 @@ label.row {
   color: var(--ink);
 }
 
-/* ---- dialog scrim ---- */
-.scrim {
+/* ---- drawer scrim ---- */
+.drawer-scrim {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  display: flex;
+  justify-content: flex-end;
   animation: fadeUp 0.2s ease both;
 }
 
