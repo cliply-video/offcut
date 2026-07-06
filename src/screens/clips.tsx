@@ -1,5 +1,13 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CheckIcon,
+  CloseIcon,
+  DownloadIcon,
+  FilmIcon,
+  PlayIcon,
+  PlusIcon,
+} from "../components/icons";
 import { useT } from "../i18n";
 import { type ExportClip, generatePoster } from "../lib/api";
 import { type ClipRow, getClips, getVideo } from "../lib/db";
@@ -10,39 +18,6 @@ function fmt(sec: number): string {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function CheckIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M3.5 8.5l3 3 6-7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function PlayIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M8 5v14l11-7z" />
-    </svg>
-  );
-}
-
-function FilmIcon() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden="true"
-    >
-      <rect x="3" y="4" width="18" height="16" rx="1" />
-      <path d="M3 9h18M3 15h18M8 4v16M16 4v16" />
-    </svg>
-  );
 }
 
 interface Group {
@@ -63,8 +38,11 @@ export function Clips({
   const [localPath, setLocalPath] = useState("");
   const [title, setTitle] = useState("clips");
   const [sel, setSel] = useState<Set<string>>(new Set());
-  // null = closed; number = seek-to seconds in the full video.
-  const [playAt, setPlayAt] = useState<number | null>(null);
+  // null = closed; {start,end} = preview window in the full video (end omitted
+  // = play through, used by "watch full video").
+  const [preview, setPreview] = useState<{ start: number; end?: number } | null>(
+    null,
+  );
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -134,6 +112,7 @@ export function Clips({
     <div style={{ padding: "20px 28px" }}>
       <div className="clips-bar">
         <button type="button" className="ghost" onClick={onBack}>
+          <PlusIcon size={13} />
           {t("clips.newVideo")}
         </button>
         <div className="row" style={{ gap: 10 }}>
@@ -142,15 +121,18 @@ export function Clips({
           </span>
           <button
             type="button"
+            className={allSelected ? "clear-btn" : ""}
             onClick={() =>
               setSel(allSelected ? new Set() : new Set(clips.map((c) => c.id)))
             }
           >
+            {allSelected ? <CloseIcon size={12} /> : <CheckIcon />}
             {allSelected ? t("clips.clear") : t("clips.selectAll")}
           </button>
           {localPath && (
-            <button type="button" onClick={() => setPlayAt(0)}>
-              ▶ {t("clips.watch")}
+            <button type="button" onClick={() => setPreview({ start: 0 })}>
+              <PlayIcon size={12} />
+              {t("clips.watch")}
             </button>
           )}
           <button
@@ -159,6 +141,7 @@ export function Clips({
             disabled={sel.size === 0}
             onClick={() => setExporting(true)}
           >
+            <DownloadIcon size={13} />
             {t("clips.export")}
           </button>
         </div>
@@ -205,7 +188,7 @@ export function Clips({
                   localPath={localPath}
                   selected={sel.has(c.id)}
                   onToggle={() => toggle(c.id)}
-                  onPlay={() => setPlayAt(c.t_sec)}
+                  onPlay={() => setPreview({ start: c.start_sec, end: c.end_sec })}
                 />
               ))}
             </div>
@@ -213,13 +196,14 @@ export function Clips({
         );
       })}
 
-      {playAt !== null && localPath && (
+      {preview && localPath && (
         <VideoOverlay
           src={localPath}
-          at={playAt}
+          start={preview.start}
+          end={preview.end}
           title={title}
           closeLabel={t("clips.close")}
-          onClose={() => setPlayAt(null)}
+          onClose={() => setPreview(null)}
         />
       )}
 
@@ -315,19 +299,20 @@ function ClipCard({
           </span>
         )}
         <span className="clip-check">{selected && <CheckIcon />}</span>
-        <button
-          type="button"
-          className="clip-play"
-          aria-label={t("clips.watch")}
-          onClick={(e) => {
-            e.stopPropagation();
-            onPlay();
-          }}
-        >
-          <span>
-            <PlayIcon />
-          </span>
-        </button>
+        {localPath && (
+          <button
+            type="button"
+            className="clip-play"
+            aria-label={t("clips.watch")}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlay();
+            }}
+          >
+            <PlayIcon size={15} />
+          </button>
+        )}
       </div>
       <div className="clip-meta">
         <div className="nm">{clip.name ?? clip.tag_label ?? t("clips.clip")}</div>
@@ -341,13 +326,15 @@ function ClipCard({
 
 function VideoOverlay({
   src,
-  at,
+  start,
+  end,
   title,
   closeLabel,
   onClose,
 }: {
   src: string;
-  at: number;
+  start: number;
+  end?: number;
   title: string;
   closeLabel: string;
   onClose: () => void;
@@ -366,8 +353,19 @@ function VideoOverlay({
         title={title}
         onClick={(e) => e.stopPropagation()}
         onLoadedMetadata={(e) => {
-          if (at > 0) e.currentTarget.currentTime = at;
+          if (start > 0) e.currentTarget.currentTime = start;
         }}
+        onTimeUpdate={
+          end === undefined
+            ? undefined
+            : (e) => {
+                // Loop the clip window so the preview keeps replaying the clip.
+                const v = e.currentTarget;
+                if (v.currentTime >= end || v.currentTime < start - 0.5) {
+                  v.currentTime = start;
+                }
+              }
+        }
       >
         <track kind="captions" />
       </video>

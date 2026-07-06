@@ -2,6 +2,12 @@ import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useState } from "react";
+import {
+  ArrowLeftIcon,
+  CloseIcon,
+  DownloadIcon,
+  FolderIcon,
+} from "../components/icons";
 import { Corners } from "../components/osd";
 import { useT } from "../i18n";
 import { friendlyError } from "../lib/errors";
@@ -24,6 +30,45 @@ function fmtDur(sec: number): string {
 }
 
 type Phase = "config" | "running" | "done" | "error";
+
+const REEL_MODES: { value: ReelMode; labelKey: string; hintKey: string }[] = [
+  { value: "none", labelKey: "export.reelNone", hintKey: "export.reelHintNone" },
+  {
+    value: "perTag",
+    labelKey: "export.reelPerTag",
+    hintKey: "export.reelHintPerTag",
+  },
+  {
+    value: "combined",
+    labelKey: "export.reelCombined",
+    hintKey: "export.reelHintCombined",
+  },
+];
+
+function Switch({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      className={`switch ${checked ? "on" : ""}`}
+      onClick={() => onChange(!checked)}
+    >
+      <span className="switch-track">
+        <span className="switch-thumb" />
+      </span>
+      <span className="switch-label">{label}</span>
+    </button>
+  );
+}
 
 interface Progress {
   phase: string;
@@ -163,44 +208,53 @@ export function ExportDialog({
           <>
             <div className="row" style={{ margin: "12px 0" }}>
               <button type="button" onClick={pickDir}>
+                <FolderIcon size={13} />
                 {t("export.chooseFolder")}
               </button>
               <span className="muted" style={{ fontSize: 12 }}>
                 {outDir ?? t("export.noFolder")}
               </span>
             </div>
-            <label className="row" style={{ margin: "8px 0" }}>
-              <input
-                type="checkbox"
-                checked={individual}
-                onChange={(e) => setIndividual(e.target.checked)}
-              />
-              {t("export.individual")}
-            </label>
-            <label className="row" style={{ margin: "8px 0" }}>
-              {t("export.reels")}
-              <select
-                value={reelMode}
-                onChange={(e) => setReelMode(e.target.value as ReelMode)}
-              >
-                <option value="none">{t("export.reelNone")}</option>
-                <option value="perTag">{t("export.reelPerTag")}</option>
-                <option value="combined">{t("export.reelCombined")}</option>
-              </select>
-            </label>
-            <label className="row" style={{ margin: "8px 0" }}>
-              <input
-                type="checkbox"
-                checked={reencode}
-                onChange={(e) => setReencode(e.target.checked)}
-              />
-              {t("export.reencode")}
-            </label>
+
+            <Switch
+              checked={individual}
+              onChange={setIndividual}
+              label={t("export.individual")}
+            />
+
+            <div className="field">
+              <span className="field-label">{t("export.reels")}</span>
+              <div className="seg" role="radiogroup" aria-label={t("export.reels")}>
+                {REEL_MODES.map((m) => (
+                  <button
+                    key={m.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={reelMode === m.value}
+                    className={reelMode === m.value ? "on" : ""}
+                    onClick={() => setReelMode(m.value)}
+                  >
+                    {t(m.labelKey)}
+                  </button>
+                ))}
+              </div>
+              <span className="field-hint">
+                {t(REEL_MODES.find((m) => m.value === reelMode)?.hintKey ?? "")}
+              </span>
+            </div>
+
+            <Switch
+              checked={reencode}
+              onChange={setReencode}
+              label={t("export.reencode")}
+            />
+
             <div
               className="row"
               style={{ justifyContent: "flex-end", marginTop: 16 }}
             >
               <button type="button" className="ghost" onClick={onClose}>
+                <CloseIcon size={12} />
                 {t("export.cancel")}
               </button>
               <button
@@ -209,6 +263,7 @@ export function ExportDialog({
                 onClick={run}
                 disabled={!outDir}
               >
+                <DownloadIcon size={13} />
                 {t("export.run")}
               </button>
             </div>
@@ -243,6 +298,7 @@ export function ExportDialog({
                 onClick={cancel}
                 disabled={cancelling}
               >
+                <CloseIcon size={12} />
                 {cancelling ? t("export.cancelling") : t("export.cancel")}
               </button>
             </div>
@@ -262,6 +318,7 @@ export function ExportDialog({
               style={{ justifyContent: "flex-end", marginTop: 16 }}
             >
               <button type="button" className="ghost" onClick={onClose}>
+                <CloseIcon size={12} />
                 {t("export.close")}
               </button>
               <button
@@ -269,6 +326,7 @@ export function ExportDialog({
                 className="primary"
                 onClick={() => revealItemInDir(summary.outDir)}
               >
+                <FolderIcon size={13} />
                 {t("export.openFolder")}
               </button>
             </div>
@@ -283,6 +341,7 @@ export function ExportDialog({
               style={{ justifyContent: "flex-end", marginTop: 16 }}
             >
               <button type="button" className="ghost" onClick={onClose}>
+                <CloseIcon size={12} />
                 {t("export.close")}
               </button>
               <button
@@ -290,6 +349,7 @@ export function ExportDialog({
                 className="primary"
                 onClick={() => setPhase("config")}
               >
+                <ArrowLeftIcon size={13} />
                 {t("export.back")}
               </button>
             </div>

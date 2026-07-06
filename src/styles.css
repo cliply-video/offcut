@@ -456,6 +456,10 @@ button {
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   cursor: pointer;
   border: 1px solid var(--line-2);
   background: var(--surface);
@@ -752,29 +756,113 @@ code {
   transition: width 0.2s ease;
 }
 
-/* ---- checkboxes / selects (native, retinted) ---- */
-input[type="checkbox"] {
-  accent-color: var(--pink);
-  width: 15px;
-  height: 15px;
-}
-select {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: var(--inset);
-  color: var(--ink);
-  border: 1px solid var(--line-2);
-  border-radius: 0;
-  padding: 6px 8px;
-}
 label.row {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--muted);
   text-transform: uppercase;
+}
+
+/* ---- toggle switch ---- */
+.switch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+}
+.switch:hover:not(:disabled) {
+  background: none;
+}
+.switch-track {
+  flex: 0 0 auto;
+  position: relative;
+  width: 36px;
+  height: 18px;
+  background: var(--inset);
+  border: 1px solid var(--line-2);
+  transition:
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+.switch.on .switch-track {
+  background: var(--pink);
+  border-color: var(--pink);
+}
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: var(--muted);
+  transition:
+    transform 0.15s var(--ease),
+    background-color 0.15s var(--ease);
+}
+.switch.on .switch-thumb {
+  transform: translateX(18px);
+  background: var(--on-accent);
+}
+.switch-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.15s var(--ease);
+}
+.switch.on .switch-label {
+  color: var(--ink);
+}
+
+/* ---- segmented control (reels) ---- */
+.field {
+  margin: 12px 0;
+}
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line-2);
+}
+.seg button {
+  border: none;
+  border-right: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 14px;
+  font-size: 10px;
+}
+.seg button:last-child {
+  border-right: none;
+}
+.seg button:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.seg button.on {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: var(--on-accent);
+}
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
 }
 
 /* ---- clips toolbar ---- */
@@ -795,14 +883,26 @@ label.row {
 .count-chip {
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink);
-  background: var(--inset);
-  border: 1px solid var(--line);
+  color: var(--pink);
+  background: color-mix(in srgb, var(--pink), transparent 88%);
+  border: 1px solid color-mix(in srgb, var(--pink), transparent 55%);
   padding: 6px 10px;
   font-variant-numeric: tabular-nums;
+}
+
+/* de-select action — read as distinct from the filled "select all" */
+.clear-btn {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.clear-btn:hover:not(:disabled) {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink);
 }
 
 /* ---- group header ---- */
@@ -924,49 +1024,41 @@ label.row {
   border-color: var(--pink);
   color: var(--on-accent);
 }
-/* Centered play control. Kept to its own footprint (not inset:0) and
-   pointer-events:none while hidden, so clicking the poster selects the clip —
-   only the visible circle plays. */
+/* Play control lives in the top-right corner, away from the poster select
+   target (whole card toggles, check sits top-left) so a click can't be misread
+   as select. Always shown so the affordance survives no-hover/touch input. */
 .clip-play {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 0;
-  background: none;
-  border: none;
-  opacity: 0;
-  pointer-events: none;
+  top: 7px;
+  right: 7px;
+  width: 30px;
+  height: 30px;
+  padding: 0 0 0 2px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  color: #fff;
+  opacity: 0.9;
+  z-index: 4;
   transition:
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease),
     opacity 0.15s var(--ease),
     transform 0.12s var(--ease);
-  z-index: 3;
 }
 .clip:hover .clip-play,
 .clip:focus-within .clip-play {
   opacity: 1;
-  pointer-events: auto;
 }
-.clip-play > span {
-  width: 42px;
-  height: 42px;
-  background: rgba(20, 16, 30, 0.6);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  padding-left: 3px;
-  transition:
-    background-color 0.15s var(--ease),
-    border-color 0.15s var(--ease);
-}
-.clip-play:hover > span {
-  background: rgba(20, 16, 30, 0.82);
+.clip-play:hover {
+  background: var(--pink);
   border-color: var(--pink);
+  color: var(--on-accent);
 }
 .clip-play:active {
-  transform: translate(-50%, -50%) scale(0.92);
+  transform: scale(0.9);
 }
 .clip-meta {
   padding: 8px 9px 9px;
@@ -1050,8 +1142,7 @@ label.row {
   outline-offset: 2px;
 }
 input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
+textarea:focus-visible {
   outline: none;
 }
 
