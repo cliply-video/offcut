@@ -95,6 +95,7 @@ export function ExportDialog({
   const [individual, setIndividual] = useState(true);
   const [reelMode, setReelMode] = useState<ReelMode>("perTag");
   const [reencode, setReencode] = useState(false);
+  const [watermark, setWatermark] = useState(true);
   const [phase, setPhase] = useState<Phase>("config");
   const [prog, setProg] = useState<Progress | null>(null);
   const [summary, setSummary] = useState<ExportSummary | null>(null);
@@ -150,6 +151,7 @@ export function ExportDialog({
         individualClips: individual,
         reelMode,
         reencode,
+        watermark,
       });
       if (result.cancelled) {
         setCancelling(false);
@@ -172,6 +174,7 @@ export function ExportDialog({
     individual,
     reelMode,
     reencode,
+    watermark,
     info,
   ]);
 
@@ -270,6 +273,15 @@ export function ExportDialog({
                   label={t("export.reencode")}
                 />
                 <span className="field-hint">{t("export.reencodeHint")}</span>
+              </div>
+
+              <div className="field field--switch">
+                <Switch
+                  checked={watermark}
+                  onChange={setWatermark}
+                  label={t("export.watermark")}
+                />
+                <span className="field-hint">{t("export.watermarkHint")}</span>
               </div>
             </div>
 

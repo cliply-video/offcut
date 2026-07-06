@@ -65,6 +65,7 @@ export type ExportOptions = {
   individualClips: boolean;
   reelMode: ReelMode;
   reencode: boolean;
+  watermark: boolean;
 };
 
 export type ExportSummary = {

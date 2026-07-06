@@ -13,7 +13,8 @@ use std::time::Duration;
 
 use futures_util::{stream, StreamExt};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, State};
+use tauri::path::BaseDirectory;
+use tauri::{AppHandle, Emitter, Manager, State};
 use tokio::process::Command;
 
 use crate::binaries::{resolve, Tool};
@@ -94,6 +95,8 @@ pub struct ExportOptions {
     /// "none" | "perTag" | "combined"
     reel_mode: String,
     reencode: bool,
+    /// Burn the Cliply mark into the top-right corner. Forces a re-encode.
+    watermark: bool,
 }
 
 #[derive(Serialize)]
@@ -192,7 +195,23 @@ fn reencode_args() -> Vec<String> {
     }
 }
 
-fn cut_args(src: &str, start: f64, end: f64, reencode: bool, out: &Path) -> Vec<String> {
+// Top-right logo overlay, sized to 10% of the video height so it stays small
+// but legible at any resolution. scale2ref reads the logo's own aspect (iw/ih)
+// and the main video's height (main_h); padding tracks the height too.
+fn watermark_filter() -> String {
+    "[1:v][0:v]scale2ref=w=main_h*0.10*iw/ih:h=main_h*0.10[wm][base];\
+     [base][wm]overlay=W-w-H*0.03:H*0.03,format=yuv420p[v]"
+        .replace(char::is_whitespace, "")
+}
+
+fn cut_args(
+    src: &str,
+    watermark: Option<&Path>,
+    start: f64,
+    end: f64,
+    reencode: bool,
+    out: &Path,
+) -> Vec<String> {
     let duration = (end - start).max(0.1);
     let mut args = vec![
         "-y".into(),
@@ -200,10 +219,19 @@ fn cut_args(src: &str, start: f64, end: f64, reencode: bool, out: &Path) -> Vec<
         format!("{start:.3}"),
         "-i".into(),
         src.to_string(),
-        "-t".into(),
-        format!("{duration:.3}"),
     ];
-    if reencode {
+    if let Some(logo) = watermark {
+        args.push("-i".into());
+        args.push(logo.to_string_lossy().into_owned());
+    }
+    args.push("-t".into());
+    args.push(format!("{duration:.3}"));
+    if let Some(_) = watermark {
+        // Overlay can't run on a stream copy — always re-encode when watermarking.
+        args.extend(["-filter_complex".into(), watermark_filter()]);
+        args.extend(["-map".into(), "[v]".into(), "-map".into(), "0:a?".into()]);
+        args.extend(reencode_args());
+    } else if reencode {
         args.extend(reencode_args());
     } else {
         args.extend(["-c".into(), "copy".into()]);
@@ -264,6 +292,17 @@ pub async fn export_clips(
         return Err("Source video not found — download it first".to_string());
     }
     let ffmpeg = resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
+
+    // The mascot mark burned into each clip's top-right corner. Bundled resource;
+    // if it can't be resolved we skip the overlay rather than fail the export.
+    let watermark = if options.watermark {
+        app.path()
+            .resolve("resources/watermark.png", BaseDirectory::Resource)
+            .ok()
+            .filter(|p| p.is_file())
+    } else {
+        None
+    };
 
     let base = PathBuf::from(&options.out_dir).join(sanitize(&options.video_title));
     std::fs::create_dir_all(&base).map_err(es)?;
@@ -344,6 +383,7 @@ pub async fn export_clips(
     let done = AtomicUsize::new(0);
     emit("clip", 0, total, "");
     let cancel_ref = cancel.as_ref();
+    let watermark_ref = watermark.as_deref();
     let cuts = jobs.into_iter().map(|job| {
         let ffmpeg = &ffmpeg;
         let src = &options.source_path;
@@ -352,7 +392,7 @@ pub async fn export_clips(
         async move {
             let outcome = run_cut(
                 ffmpeg,
-                &cut_args(src, job.start, job.end, options.reencode, &job.file),
+                &cut_args(src, watermark_ref, job.start, job.end, options.reencode, &job.file),
                 cancel_ref,
             )
             .await?;

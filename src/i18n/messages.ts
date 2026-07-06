@@ -95,6 +95,9 @@ export const messages: Record<Locale, Record<string, string>> = {
     "export.reencode": "Re-encode",
     "export.reencodeHint":
       "Frame-accurate but slower — off uses a fast stream copy",
+    "export.watermark": "Watermark",
+    "export.watermarkHint":
+      "Burn the Cliply mark into the top-right corner — re-encodes each clip",
     "export.cancel": "Cancel",
     "export.cancelling": "Cancelling…",
     "export.run": "Export",
@@ -224,6 +227,9 @@ export const messages: Record<Locale, Record<string, string>> = {
     "export.reencode": "Recodificar",
     "export.reencodeHint":
       "Preciso por frame pero más lento — apagado usa stream-copy rápido",
+    "export.watermark": "Marca de agua",
+    "export.watermarkHint":
+      "Estampa el logo de Cliply arriba a la derecha — recodifica cada clip",
     "export.cancel": "Cancelar",
     "export.cancelling": "Cancelando…",
     "export.run": "Exportar",

@@ -44,6 +44,7 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": ["app", "dmg", "nsis", "deb", "appimage"],
+    "resources": ["resources/watermark.png"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
