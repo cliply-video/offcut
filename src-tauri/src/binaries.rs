@@ -75,7 +75,7 @@ fn exe_name(name: &str) -> String {
 ///
 /// Versions are pinned with verified SHA256 (bump deliberately on release).
 /// `None` means no managed download for this platform → fall back to a
-/// system/PATH copy (see `resolve`). yt-dlp: pinned 2026.06.09 (raw binary,
+/// system/PATH copy (see `resolve`). yt-dlp: pinned 2026.08.19 (raw binary,
 /// all platforms). ffmpeg/ffprobe: macOS via the evermeet 8.1.1 static zip,
 /// Windows via the gyan.dev 8.1.2 static zip; Linux not yet bundled — use
 /// system ffmpeg or set FFMPEG_PATH. deno: pinned 2.9.1 (official zip, per
@@ -85,22 +85,22 @@ fn source(tool: Tool) -> Option<Source> {
         Tool::YtDlp => {
             #[cfg(target_os = "macos")]
             return Some(Source {
-                url: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.06.09/yt-dlp_macos",
-                sha256: "b82c3626952e6c14eaf654cc565866775ffd0b9ffb7021628ac59b42c2f4f244",
+                url: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp_macos",
+                sha256: "0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202",
                 archive: Archive::Raw,
                 member: "yt-dlp",
             });
             #[cfg(target_os = "windows")]
             return Some(Source {
-                url: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.06.09/yt-dlp.exe",
-                sha256: "3a48cb955d55c8821b60ccbdbbc6f61bc958f2f3d3b7ad5eaf3d83a543293a27",
+                url: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe",
+                sha256: "66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a",
                 archive: Archive::Raw,
                 member: "yt-dlp.exe",
             });
             #[cfg(target_os = "linux")]
             return Some(Source {
-                url: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.06.09/yt-dlp_linux",
-                sha256: "bf8aac79b72287a6d2043074415132558b43743a8f9461a22b0141e90f16ce66",
+                url: "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp_linux",
+                sha256: "58162f9bfdc27458ea47bfcb311cf47028f17d8154a8bf7d689861d46399230a",
                 archive: Archive::Raw,
                 member: "yt-dlp",
             });
