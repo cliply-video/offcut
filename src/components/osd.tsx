@@ -1,8 +1,7 @@
-// Broadcast-OSD primitives, ported from cliply's components/broadcast kit and
-// trimmed to what the desktop app needs: corner brackets, status dot/label, the
-// blinking REC dot, and the CRT field texture (scanlines + grain).
+// OSD primitives: corner brackets, status dot/label, the blinking REC dot, and
+// the scanline field texture.
 
-type Tone = "pink" | "gold" | "white" | "win" | "loss";
+type Tone = "accent" | "gold" | "white" | "win" | "loss";
 
 export function Corners({ className }: { className?: string }) {
   return (
@@ -16,7 +15,7 @@ export function Corners({ className }: { className?: string }) {
 }
 
 export function StatusDot({
-  tone = "pink",
+  tone = "accent",
   blink,
 }: {
   tone?: Tone;
@@ -26,7 +25,7 @@ export function StatusDot({
 }
 
 export function StatusPill({
-  tone = "pink",
+  tone = "accent",
   blink,
   children,
 }: {
@@ -42,13 +41,7 @@ export function StatusPill({
   );
 }
 
-// CRT scanlines + film grain, fixed behind everything. Square-monitor texture
-// that opaque panels mask, so only the bare field shows the stripes.
+// Opaque panels mask the scanlines, so they only show on the bare field.
 export function FieldTexture() {
-  return (
-    <>
-      <div aria-hidden="true" className="bx-scanlines" />
-      <div aria-hidden="true" className="bx-grain" />
-    </>
-  );
+  return <div aria-hidden="true" className="field-lines" />;
 }

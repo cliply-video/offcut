@@ -2,14 +2,12 @@ import { useEffect } from "react";
 import mascotSignal from "../assets/mascot-signal.svg";
 import { useT } from "../i18n";
 import { playSfx } from "../lib/sfx";
-import { LogoMark } from "./logo";
+import { CliplyMark, ExporterMark } from "./logo";
 
 const VERSION = __APP_VERSION__;
 
-// Boot splash — the Signal mascot (crisp brand SVG, gentle idle bob) peeks in
-// large from the lower-left edge of the window, with the RGB-glitch CLIPLY
-// wordmark (burst-on-mount) + mono badge centered on the dark broadcast field.
-// Plays the clip chime on mount.
+// Boot splash — the Signal mascot peeks in from the lower-left while the Exporter
+// lockup boots in the center. Plays the clip chime on mount.
 export function Splash({ onDone }: { onDone: () => void }) {
   const { t } = useT();
 
@@ -23,8 +21,8 @@ export function Splash({ onDone }: { onDone: () => void }) {
   return (
     <div className="splash" role="status" aria-live="polite">
       <div className="splash-drag" data-tauri-drag-region />
-      <span aria-hidden="true" className="bx-scanlines splash-lines" />
-      <span aria-hidden="true" className="bx-grain splash-lines" />
+      <span aria-hidden="true" className="smpte" />
+      <span aria-hidden="true" className="field-lines splash-lines" />
 
       <img
         src={mascotSignal}
@@ -34,19 +32,14 @@ export function Splash({ onDone }: { onDone: () => void }) {
       />
 
       <div className="splash-stage">
-        <div className="splash-lockup bx-glitch-auto">
-          <LogoMark className="splash-mark" />
-          <span className="splash-word bx-glitch">
-            <span aria-hidden="true" className="bx-glitch-layer bx-glitch-a">
-              CLIPLY
-            </span>
-            <span aria-hidden="true" className="bx-glitch-layer bx-glitch-b">
-              CLIPLY
-            </span>
-            <span className="bx-glitch-base">CLIPLY</span>
-          </span>
-          <span className="splash-badge">{t("splash.badge")}</span>
+        <div className="splash-lockup">
+          <ExporterMark className="splash-mark" />
+          <span className="splash-word">Exporter</span>
         </div>
+        <span className="splash-by">
+          {t("footer.productOf")} <CliplyMark className="by-mark" />
+          <span className="by-word">cliply</span>
+        </span>
 
         <span aria-hidden="true" className="splash-bar">
           <i className="bx-boot-bar" />

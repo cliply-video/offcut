@@ -5,11 +5,10 @@ export const messages: Record<Locale, Record<string, string>> = {
   en: {
     "nav.github": "GitHub",
     "nav.getApp": "Get the full app ↗",
-    "splash.badge": "Exporter",
     "splash.label": "Booting clip engine…",
     "status.local": "Local · Offline",
     "footer.tagline": "Open-source clip cutter · nothing leaves your machine",
-    "footer.cloud": "Cloud, teams & live sharing →",
+    "footer.productOf": "A product of",
 
     "stepper.aria": "Progress",
     "stepper.video": "Video",
@@ -147,11 +146,10 @@ export const messages: Record<Locale, Record<string, string>> = {
   es: {
     "nav.github": "GitHub",
     "nav.getApp": "Ver la app completa ↗",
-    "splash.badge": "Exporter",
     "splash.label": "Iniciando motor de clips…",
     "status.local": "Local · Offline",
     "footer.tagline": "Cortador de clips open-source · nada sale de tu equipo",
-    "footer.cloud": "Nube, equipos y compartir en vivo →",
+    "footer.productOf": "Un producto de",
 
     "stepper.aria": "Progreso",
     "stepper.video": "Video",

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useT } from "../i18n";
-import { cliplyUrl, GITHUB_URL, openExternal } from "../lib/links";
-import { Logo } from "./logo";
+import { GITHUB_URL, openExternal } from "../lib/links";
+import { CliplySign, Logo } from "./logo";
 import { FieldTexture, StatusPill } from "./osd";
 import { Stepper } from "./stepper";
 
@@ -33,6 +33,7 @@ export function Shell({
 
       {/* Native overlay titlebar — drags the window; sits over the traffic lights. */}
       <header className="titlebar" data-tauri-drag-region>
+        <span aria-hidden="true" className="smpte" />
         <Logo />
         <nav className="titlebar-nav">
           <div className="langtoggle">
@@ -71,7 +72,7 @@ export function Shell({
 
       <main className="shell-main">{children}</main>
 
-      {/* Quiet OSD status strip — no marketing CTA, just app state + provenance. */}
+      {/* Quiet OSD status strip — app state + provenance. */}
       <footer className="statusbar">
         <div className="sb-group">
           <StatusPill tone="win">{t("status.local")}</StatusPill>
@@ -79,13 +80,7 @@ export function Shell({
         </div>
         <div className="sb-group">
           <span>v{VERSION}</span>
-          <button
-            type="button"
-            className="link-inline"
-            onClick={() => openExternal(cliplyUrl("statusbar"))}
-          >
-            cliply.video ↗
-          </button>
+          <CliplySign />
         </div>
       </footer>
     </div>

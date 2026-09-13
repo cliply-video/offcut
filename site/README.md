@@ -19,5 +19,8 @@ Point any static host at this `site/` directory and set the custom domain
 Download links point at `/releases/latest`, so they're version-free — nothing
 to bump per release. `screenshot.png` is the app's home screen (kept in sync
 with `docs/home.png`); refresh it when the UI changes. The look mirrors the app
-(`src/styles.css`): dark broadcast-OSD palette, Anton + IBM Plex Mono, square
-panels, CRT field.
+(`src/styles.css`): its own Exporter mark (in/out brackets + export arrow),
+graphite palette with a signal-cyan accent, Doto dot-matrix display + IBM Plex
+Mono labels, scanline field. Like sinte.ar it carries the cliply family cues — SMPTE
+bar strip, "by cliply" next to the logo, "a product of cliply" in the footer —
+and pink is reserved for anything that leads to cliply.video.

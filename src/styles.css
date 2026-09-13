@@ -1,21 +1,20 @@
-/* cliply-exporter — broadcast OSD skin, ported from cliply's new UI (components/
-   broadcast). Square panels, hairline borders, mono labels, corner brackets and
-   a CRT field, on the dark monitor palette. Framed as a native desktop app:
-   overlay titlebar over the macOS traffic lights, drag region, quiet status bar
-   — not a marketing webpage. */
+/* cliply-exporter — a cliply family product, deliberately not a clone: own mark,
+   graphite field, signal-cyan accent, Doto dot-matrix titles, scanline field.
+   Family cues: IBM Plex Mono labels, SMPTE bar strip, "a product of cliply".
+   Pink (--cliply) is reserved for anything that leads to cliply.video. */
 :root {
   color-scheme: dark;
 
-  --font-display: "Anton", "Space Grotesk Variable", Impact, sans-serif;
+  --font-display: "Doto Variable", var(--font-mono);
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
   --font-body: "Hanken Grotesk Variable", system-ui, sans-serif;
 
   /* Elevation ladder: field (carries the CRT texture) → surface (every panel) →
      inset (recessed zones). Surface stays clearly lighter than field or panels
      read flat. */
-  --bg: #1a1822;
-  --surface: #221f2a;
-  --surface-2: #2a2733;
+  --bg: #111417;
+  --surface: #181c20;
+  --surface-2: #20252a;
   --inset: rgba(255, 255, 255, 0.03);
 
   --line: rgba(255, 255, 255, 0.1);
@@ -24,9 +23,10 @@
   --ink: #f6f4fb;
   --muted: rgba(255, 255, 255, 0.55);
 
-  --pink: #ffb8d1; /* primary / active */
+  --accent: #38bdf8; /* primary / active */
+  --cliply: #ffb8d1; /* links out to cliply.video only */
   --gold: #e8c200; /* secondary */
-  --on-accent: #16141b;
+  --on-accent: #04121a;
   --win: #3ddc84;
   --loss: #ff5c6c;
   --destructive: #ff857f;
@@ -66,27 +66,18 @@ textarea {
   user-select: text;
 }
 
-/* ---- CRT field texture (scanlines + grain), fixed behind everything ---- */
-.bx-scanlines {
+/* ---- scanline field, fixed behind everything ---- */
+.field-lines {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* light lines: darkening a near-black graphite field is invisible */
   background: repeating-linear-gradient(
     0deg,
-    transparent 0 2px,
-    rgba(0, 0, 0, 0.22) 2px 3px
+    rgba(255, 255, 255, 0.035) 0 1px,
+    transparent 1px 3px
   );
-  opacity: 0.15;
-}
-.bx-grain {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
 @keyframes fadeUp {
@@ -207,8 +198,8 @@ textarea {
   transition: all 0.2s var(--ease);
 }
 .stepper-item.active .stepper-badge {
-  background: var(--pink);
-  border-color: var(--pink);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--on-accent);
 }
 .stepper-item.active .stepper-label {
@@ -231,14 +222,33 @@ textarea {
   cursor: pointer;
 }
 .stepper-item.clickable:hover .stepper-badge {
-  border-color: var(--pink);
+  border-color: var(--accent);
   color: var(--ink);
 }
 .stepper-item.clickable:hover .stepper-label {
   color: var(--ink);
 }
 
-/* ---- logo / wordmark (centered in the titlebar) ---- */
+/* ---- SMPTE bar strip (cliply family cue) ---- */
+.smpte {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    #c0c0c0 0 14.28%,
+    #c0c000 0 28.57%,
+    #00c0c0 0 42.85%,
+    #00c000 0 57.14%,
+    #c000c0 0 71.42%,
+    #c00000 0 85.71%,
+    #2419b0 0
+  );
+}
+
+/* ---- logo: Exporter mark + wordmark + "by cliply" (centered in titlebar) ---- */
 .logo {
   position: absolute;
   left: 50%;
@@ -246,35 +256,73 @@ textarea {
   transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   cursor: default;
 }
-.logo svg {
-  width: 30px;
-  height: 30px;
-  color: var(--pink);
+.logo-mark {
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+}
+.logo-word {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 21px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.logo-by,
+.splash-by,
+.cliply-sign {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.logo-by {
+  margin-left: 2px;
+  padding-left: 12px;
+  border-left: 1px solid var(--line-2);
+}
+.by-mark,
+.sign-mark {
+  width: 13px;
+  height: 13px;
+  color: var(--cliply);
   overflow: visible;
 }
-.wordmark {
-  font-family: var(--font-mono);
+.by-word,
+.sign-word {
   font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  line-height: 1;
-}
-.wordmark .oss {
-  margin-left: 9px;
-  padding: 2px 5px;
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  color: var(--pink);
-  border: 1px solid color-mix(in srgb, var(--pink), transparent 60%);
-  vertical-align: middle;
+  letter-spacing: 0.24em;
+  color: var(--ink);
 }
 
-/* ---- brand hover effect (ported from cliply): RGB-split wordmark glitch +
-   transmitter signal arcs rippling off the mark, both fired by one hover. ---- */
+/* "a product of cliply" sign-off in the statusbar */
+.cliply-sign {
+  background: none;
+  border: none;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--line-2);
+  font-size: 9px;
+}
+.cliply-sign:hover:not(:disabled) {
+  background: none;
+  border-color: var(--line-2);
+}
+.cliply-sign:hover .sign-word {
+  color: var(--cliply);
+}
+
+/* ---- cliply hover effect: RGB-split wordmark glitch + transmitter signal arcs
+   rippling off the mark, both fired by one hover. ---- */
 .bx-glitch {
   position: relative;
   display: inline-block;
@@ -370,7 +418,7 @@ textarea {
   color: var(--muted);
 }
 .eyebrow {
-  color: var(--pink);
+  color: var(--accent);
 }
 
 .dot {
@@ -378,10 +426,10 @@ textarea {
   height: 6px;
   border-radius: 999px;
   flex: 0 0 auto;
-  background: var(--pink);
+  background: var(--accent);
 }
-.dot.tone-pink {
-  background: var(--pink);
+.dot.tone-accent {
+  background: var(--accent);
 }
 .dot.tone-gold {
   background: var(--gold);
@@ -409,8 +457,8 @@ textarea {
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.status-pill.tone-pink {
-  color: var(--pink);
+.status-pill.tone-accent {
+  color: var(--accent);
 }
 .status-pill.tone-gold {
   color: var(--gold);
@@ -495,14 +543,14 @@ button:disabled {
 }
 
 button.primary {
-  background: var(--pink);
+  background: var(--accent);
   color: var(--on-accent);
-  border-color: var(--pink);
+  border-color: var(--accent);
   font-weight: 600;
 }
 button.primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--pink), white 10%);
-  border-color: color-mix(in srgb, var(--pink), white 10%);
+  background: color-mix(in srgb, var(--accent), white 10%);
+  border-color: color-mix(in srgb, var(--accent), white 10%);
 }
 
 button.ghost {
@@ -550,11 +598,11 @@ button.ghost:hover:not(:disabled) {
   font-size: 10px;
 }
 .langtoggle button.on {
-  background: color-mix(in srgb, var(--pink), transparent 86%);
-  color: var(--pink);
+  background: color-mix(in srgb, var(--accent), transparent 86%);
+  color: var(--accent);
 }
 
-/* inline statusbar link */
+/* inline link out to cliply.video */
 .link-inline {
   background: none;
   border: none;
@@ -564,7 +612,7 @@ button.ghost:hover:not(:disabled) {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--pink);
+  color: var(--cliply);
 }
 .link-inline:hover {
   text-decoration: underline;
@@ -589,15 +637,14 @@ button.ghost:hover:not(:disabled) {
 /* ---- typography ---- */
 .display {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 0.94;
-  text-transform: uppercase;
-  font-size: clamp(40px, 6.5vw, 72px);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.04;
+  font-size: clamp(34px, 5vw, 58px);
   margin: 0;
 }
 .accent-text {
-  color: var(--pink);
+  color: var(--accent);
 }
 .lead {
   font-size: clamp(14px, 1.5vw, 16px);
@@ -607,10 +654,9 @@ button.ghost:hover:not(:disabled) {
 }
 h2 {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 900;
+  font-size: clamp(22px, 2.8vw, 28px);
+  line-height: 1.1;
   margin: 0 0 8px;
 }
 code {
@@ -647,7 +693,7 @@ code {
 }
 .hero-cta:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 16px 38px -12px color-mix(in srgb, var(--pink), transparent 25%);
+  box-shadow: 0 16px 38px -12px color-mix(in srgb, var(--accent), transparent 25%);
 }
 /* Flow steps reuse the hero column verbatim, so the eyebrow + title land in the
    same spot on every step (home, import, …) instead of drifting. */
@@ -670,8 +716,8 @@ code {
 }
 .input-xl:focus {
   outline: none;
-  border-color: color-mix(in srgb, var(--pink), transparent 40%);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--pink), transparent 55%);
+  border-color: color-mix(in srgb, var(--accent), transparent 40%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent), transparent 55%);
 }
 
 /* ---- step 2 no-XML path + cliply handoff ---- */
@@ -704,7 +750,7 @@ code {
   flex-wrap: wrap;
   padding: 12px 16px;
   border: 1px solid var(--line);
-  border-left: 2px solid var(--pink);
+  border-left: 2px solid var(--cliply);
   background: var(--inset);
 }
 .handoff-text {
@@ -859,7 +905,7 @@ code {
 .bar > span {
   display: block;
   height: 100%;
-  background: var(--pink);
+  background: var(--accent);
   transition: width 0.2s ease;
 }
 
@@ -898,8 +944,8 @@ label.row {
     border-color 0.15s var(--ease);
 }
 .switch.on .switch-track {
-  background: var(--pink);
-  border-color: var(--pink);
+  background: var(--accent);
+  border-color: var(--accent);
 }
 .switch-thumb {
   position: absolute;
@@ -961,8 +1007,8 @@ label.row {
   background: var(--surface-2);
 }
 .seg button.on {
-  background: var(--pink);
-  border-color: var(--pink);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--on-accent);
 }
 .field-hint {
@@ -1000,9 +1046,9 @@ label.row {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--pink);
-  background: color-mix(in srgb, var(--pink), transparent 88%);
-  border: 1px solid color-mix(in srgb, var(--pink), transparent 55%);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent), transparent 88%);
+  border: 1px solid color-mix(in srgb, var(--accent), transparent 55%);
   padding: 6px 10px;
   font-variant-numeric: tabular-nums;
 }
@@ -1039,14 +1085,14 @@ label.row {
   transition: all 0.15s var(--ease);
 }
 .group-check.all {
-  background: var(--pink);
-  border-color: var(--pink);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--on-accent);
 }
 .group-check.some {
-  border-color: var(--pink);
-  background: color-mix(in srgb, var(--pink), transparent 70%);
-  color: var(--pink);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent), transparent 70%);
+  color: var(--accent);
 }
 .group-head .dot {
   width: 10px;
@@ -1081,11 +1127,11 @@ label.row {
 }
 .clip:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--pink), transparent 45%);
+  border-color: color-mix(in srgb, var(--accent), transparent 45%);
 }
 .clip.sel {
-  border-color: var(--pink);
-  box-shadow: inset 0 0 0 1px var(--pink);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .clip-poster {
   position: relative;
@@ -1131,11 +1177,11 @@ label.row {
   z-index: 2;
 }
 .clip:hover:not(.sel) .clip-check {
-  border-color: var(--pink);
+  border-color: var(--accent);
 }
 .clip.sel .clip-check {
-  background: var(--pink);
-  border-color: var(--pink);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--on-accent);
 }
 /* Play control lives in the top-right corner, away from the poster select
@@ -1167,8 +1213,8 @@ label.row {
   opacity: 1;
 }
 .clip-play:hover {
-  background: var(--pink);
-  border-color: var(--pink);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--on-accent);
 }
 .clip-play:active {
@@ -1251,7 +1297,7 @@ label.row {
 
 /* ---- focus ring ---- */
 :focus-visible {
-  outline: 2px solid var(--pink);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 input:focus-visible,
@@ -1274,7 +1320,7 @@ textarea:focus-visible {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* ---- boot splash (matches cliply's desktop SplashScreen) ---- */
+/* ---- boot splash ---- */
 .splash {
   position: fixed;
   inset: 0;
@@ -1312,23 +1358,11 @@ textarea:focus-visible {
   align-items: center;
   gap: 18px;
 }
-/* the iso (C-ring + play mark) sits left of the CLIPLY wordmark, sized to the
-   cap height; its signal arcs auto-transmit on boot (no cursor to hover). */
 .splash-mark {
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
-  color: var(--pink);
-  overflow: visible;
-}
-.splash-lockup .bx-signal-wave {
-  animation: bx-signal 0.6s ease-out infinite;
-}
-.splash-lockup .bx-signal-2 {
-  animation-delay: 0.16s;
-}
-.splash-lockup .bx-signal-3 {
-  animation-delay: 0.32s;
+  color: var(--accent);
 }
 /* Mascot peeks in large from the lower-left, part of it off the window edge,
    tilted as if leaning in. */
@@ -1341,7 +1375,7 @@ textarea:focus-visible {
   z-index: 3;
   pointer-events: none;
   transform-origin: bottom left;
-  filter: drop-shadow(0 0 60px rgba(255, 184, 209, 0.35));
+  filter: drop-shadow(0 0 60px rgba(56, 189, 248, 0.3));
   animation:
     splash-mascot-peek 0.8s var(--ease) both,
     splash-mascot-idle 3.6s ease-in-out 0.8s infinite;
@@ -1366,24 +1400,17 @@ textarea:focus-visible {
   }
 }
 .splash-word {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 48px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 56px;
   line-height: 1;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink);
 }
-/* small mono channel badge, top-aligned like the desktop "Desktop" chip */
-.splash-badge {
-  align-self: flex-start;
-  padding: 2px 6px;
-  border: 1px solid color-mix(in srgb, var(--gold), transparent 60%);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
+.splash-by {
+  font-size: 10px;
+  margin-top: -8px;
 }
 .splash-bar {
   position: relative;
@@ -1398,7 +1425,7 @@ textarea:focus-visible {
   display: block;
   width: 25%;
   height: 100%;
-  background: var(--gold);
+  background: var(--accent);
   animation: bx-boot 1.1s ease-in-out infinite;
 }
 .splash-version {
@@ -1431,42 +1458,12 @@ textarea:focus-visible {
   }
 }
 
-/* self-firing wordmark glitch — RGB-split burst on mount, then settle (no cursor
-   to hover on a splash) */
-@keyframes bx-glitch-settle {
-  0%,
-  80% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-.bx-glitch-auto .bx-glitch-a {
-  color: #ff4d6d;
-  animation:
-    bx-glitch 0.4s steps(2) 3,
-    bx-glitch-settle 1.2s linear forwards;
-}
-.bx-glitch-auto .bx-glitch-b {
-  color: #00d0ff;
-  animation:
-    bx-glitch 0.4s steps(2) 3 reverse,
-    bx-glitch-settle 1.2s linear forwards;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .dot.rec,
   .stage > *,
   .splash-stage,
   .splash-mascot,
-  .splash-lockup .bx-signal-wave,
   .bx-boot-bar {
-    animation: none;
-  }
-  .bx-glitch-auto .bx-glitch-a,
-  .bx-glitch-auto .bx-glitch-b {
-    opacity: 0;
     animation: none;
   }
 }

@@ -16,34 +16,35 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://exporter.cliply.video" />
     <meta property="og:image" content="https://exporter.cliply.video/screenshot.png" />
-    <meta name="theme-color" content="#1a1822" />
+    <meta name="theme-color" content="#111417" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Doto:wght@900&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
-      /* broadcast OSD skin — mirrors the app (src/styles.css): dark monitor
-         palette, square panels, hairline borders, mono labels, corner brackets,
-         a CRT field. Anton display + IBM Plex Mono labels + Hanken body. */
+      /* mirrors the app (src/styles.css): own Exporter mark, graphite field,
+         signal-cyan accent, Doto dot-matrix display + IBM Plex Mono labels +
+         Hanken body, scanline field. Family cues: SMPTE strip + "a product of
+         cliply". Pink (--cliply) only on things that lead to cliply.video. */
       :root {
         color-scheme: dark;
-        --bg: #1a1822;
-        --surface: #221f2a;
-        --surface-2: #2a2733;
+        --bg: #111417;
+        --surface: #181c20;
+        --surface-2: #20252a;
         --inset: rgba(255, 255, 255, 0.03);
         --line: rgba(255, 255, 255, 0.1);
         --line-2: rgba(255, 255, 255, 0.16);
         --ink: #f6f4fb;
         --muted: rgba(255, 255, 255, 0.55);
-        --pink: #ffb8d1;
-        --gold: #e8c200;
+        --accent: #38bdf8;
+        --cliply: #ffb8d1;
         --win: #3ddc84;
-        --on-accent: #16141b;
-        --display: "Anton", Impact, sans-serif;
+        --on-accent: #04121a;
+        --display: "Doto", var(--mono);
         --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
         --body: "Hanken Grotesk", system-ui, sans-serif;
         --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -62,29 +63,18 @@
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
       }
-      /* CRT field: scanlines + grain, fixed behind everything */
+      /* scanline field, fixed behind everything */
       body::before {
         content: "";
         position: fixed;
         inset: 0;
         z-index: 0;
         pointer-events: none;
-        opacity: 0.15;
         background: repeating-linear-gradient(
           0deg,
-          transparent 0 2px,
-          rgba(0, 0, 0, 0.22) 2px 3px
+          rgba(255, 255, 255, 0.035) 0 1px,
+          transparent 1px 3px
         );
-      }
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        opacity: 0.05;
-        mix-blend-mode: overlay;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
       }
       .wrap {
         position: relative;
@@ -97,7 +87,7 @@
         color: inherit;
       }
       .accent {
-        color: var(--pink);
+        color: var(--accent);
       }
 
       /* ---- OSD label / eyebrow ---- */
@@ -107,7 +97,7 @@
         font-weight: 500;
         letter-spacing: 0.24em;
         text-transform: uppercase;
-        color: var(--pink);
+        color: var(--accent);
         margin: 0;
       }
 
@@ -125,35 +115,77 @@
         flex-wrap: wrap;
         border-bottom: 1px solid var(--line);
       }
+      .smpte {
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 4px;
+        z-index: 3;
+        background: linear-gradient(
+          90deg,
+          #c0c0c0 0 14.28%,
+          #c0c000 0 28.57%,
+          #00c0c0 0 42.85%,
+          #00c000 0 57.14%,
+          #c000c0 0 71.42%,
+          #c00000 0 85.71%,
+          #2419b0 0
+        );
+      }
       .logo {
         display: inline-flex;
         align-items: center;
         gap: 11px;
       }
-      .logo svg {
-        width: 30px;
-        height: 30px;
-        color: var(--pink);
-        overflow: visible;
+      .logo .mark {
+        width: 26px;
+        height: 26px;
+        color: var(--accent);
       }
       .logo .wm {
-        font-family: var(--mono);
-        font-weight: 700;
-        font-size: 16px;
-        letter-spacing: 0.26em;
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 26px;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
         line-height: 1;
       }
-      .logo .tag {
-        margin-left: 9px;
-        padding: 2px 5px;
+      .by,
+      .sign {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         font-family: var(--mono);
-        font-size: 9px;
-        letter-spacing: 0.18em;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: var(--pink);
-        border: 1px solid color-mix(in srgb, var(--pink), transparent 60%);
-        vertical-align: middle;
+        color: var(--muted);
+        text-decoration: none;
+      }
+      .by {
+        margin-left: 3px;
+        padding-left: 13px;
+        border-left: 1px solid var(--line-2);
+      }
+      .by svg,
+      .sign svg {
+        width: 14px;
+        height: 14px;
+        color: var(--cliply);
+      }
+      .by b,
+      .sign b {
+        font-weight: 700;
+        letter-spacing: 0.24em;
+        color: var(--ink);
+        transition: color 0.15s var(--ease);
+      }
+      .by:hover b,
+      .sign:hover b {
+        color: var(--cliply);
+      }
+      .sign b {
+        font-size: 13px;
       }
       .navlinks {
         display: flex;
@@ -188,8 +220,8 @@
         cursor: pointer;
       }
       .langtoggle button.on {
-        background: color-mix(in srgb, var(--pink), transparent 86%);
-        color: var(--pink);
+        background: color-mix(in srgb, var(--accent), transparent 86%);
+        color: var(--accent);
       }
 
       /* ---- buttons (square OSD) ---- */
@@ -221,14 +253,14 @@
         transform: scale(0.98);
       }
       .btn.primary {
-        background: var(--pink);
+        background: var(--accent);
         color: var(--on-accent);
-        border-color: var(--pink);
+        border-color: var(--accent);
         font-weight: 600;
       }
       .btn.primary:hover {
-        background: color-mix(in srgb, var(--pink), white 10%);
-        border-color: color-mix(in srgb, var(--pink), white 10%);
+        background: color-mix(in srgb, var(--accent), white 10%);
+        border-color: color-mix(in srgb, var(--accent), white 10%);
       }
       .btn.lg {
         font-size: 13px;
@@ -244,11 +276,10 @@
       }
       h1 {
         font-family: var(--display);
-        font-weight: 400;
-        letter-spacing: 0.005em;
-        line-height: 0.92;
-        text-transform: uppercase;
-        font-size: clamp(44px, 8.5vw, 92px);
+        font-weight: 900;
+        letter-spacing: -0.01em;
+        line-height: 1.04;
+        font-size: clamp(32px, 6.2vw, 70px);
         margin: 0;
       }
       .lead {
@@ -275,7 +306,7 @@
         margin-top: 6px;
       }
       .cta .sub a {
-        color: var(--pink);
+        color: var(--accent);
         text-decoration: none;
       }
 
@@ -319,7 +350,7 @@
         width: 6px;
         height: 6px;
         border-radius: 999px;
-        background: var(--pink);
+        background: var(--accent);
         animation: blink 1.2s steps(1) infinite;
       }
       @keyframes blink {
@@ -337,7 +368,7 @@
         width: 14px;
         height: 14px;
         pointer-events: none;
-        border-color: var(--pink);
+        border-color: var(--accent);
         z-index: 2;
       }
       .corners .tl {
@@ -380,12 +411,10 @@
       }
       h2 {
         font-family: var(--display);
-        font-weight: 400;
-        letter-spacing: 0.01em;
-        text-transform: uppercase;
-        font-size: clamp(26px, 3.6vw, 40px);
+        font-weight: 900;
+        font-size: clamp(24px, 3.2vw, 34px);
         margin: 0;
-        line-height: 1;
+        line-height: 1.1;
       }
       .sec-head .sub2 {
         color: var(--muted);
@@ -404,7 +433,7 @@
         transition: color 0.15s var(--ease);
       }
       .sec-head .more:hover {
-        color: var(--pink);
+        color: var(--accent);
       }
       .grid {
         display: grid;
@@ -426,7 +455,7 @@
         font-weight: 600;
         font-size: 12px;
         letter-spacing: 0.14em;
-        color: var(--gold);
+        color: var(--accent);
       }
       .card h3 {
         font-family: var(--mono);
@@ -458,10 +487,8 @@
       }
       .dlcard .os {
         font-family: var(--display);
-        font-weight: 400;
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
-        font-size: 26px;
+        font-weight: 900;
+        font-size: 28px;
       }
       .dlcard .meta {
         color: var(--muted);
@@ -480,12 +507,12 @@
         margin: 28px 0 0;
         background: var(--surface);
         border: 1px solid var(--line);
-        border-left: 2px solid var(--pink);
+        border-left: 2px solid var(--accent);
         padding: 22px 24px;
         transition: box-shadow 0.2s ease;
       }
       .callout.hot {
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pink), transparent 60%);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent), transparent 60%);
       }
       .callout h3 {
         font-family: var(--mono);
@@ -558,7 +585,19 @@
         text-decoration: none;
       }
       .footrow a:hover {
-        color: var(--pink);
+        color: var(--accent);
+      }
+      .navlinks a.cliply {
+        color: var(--cliply);
+      }
+      .footrow > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .footrow .sign {
+        padding-left: 16px;
+        border-left: 1px solid var(--line-2);
       }
 
       @media (max-width: 760px) {
@@ -582,19 +621,18 @@
     </style>
   </head>
   <body>
+    <div class="smpte" aria-hidden="true"></div>
     <nav>
-      <span class="logo">
-        <svg viewBox="0 0 100 100" fill="none" aria-label="cliply">
-          <path d="M73.3 26.7 A33 33 0 1 0 73.3 73.3" stroke="currentColor" stroke-width="9" stroke-linecap="round" fill="none" />
-          <path d="M44 33 L71 50 L44 67 Z" fill="currentColor" />
-        </svg>
-        <span class="wm">Cliply</span><span class="tag">Exporter</span>
+      <span class="logo" aria-label="Cliply Exporter">
+        <svg class="mark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="square" aria-hidden="true"><path d="M14 42V14h28" /><path d="M86 58v28H58" /><path d="M36 64 70 30M46 28h26v26" /></svg>
+        <span class="wm">Exporter</span>
+        <a class="by" href="https://cliply.video/?utm_source=exporter&amp;utm_medium=site&amp;utm_campaign=exporter&amp;utm_content=header">by <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M73.3 26.7A33 33 0 1 0 73.3 73.3" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" /><path d="M44 33 71 50 44 67Z" fill="currentColor" /></svg><b>cliply</b></a>
       </span>
       <span class="navlinks">
         <a href="#features" data-i18n="nav.features">Features</a>
         <a href="#download" data-i18n="nav.download">Download</a>
         <a href="https://github.com/cliply-video/cliply-exporter">GitHub</a>
-        <a href="https://cliply.video/?utm_source=exporter&amp;utm_medium=site&amp;utm_campaign=exporter&amp;utm_content=nav">cliply.video ↗</a>
+        <a class="cliply" href="https://cliply.video/?utm_source=exporter&amp;utm_medium=site&amp;utm_campaign=exporter&amp;utm_content=nav">cliply.video ↗</a>
         <span class="langtoggle">
           <button type="button" data-lang="en">EN</button>
           <button type="button" data-lang="es">ES</button>
@@ -711,9 +749,8 @@
       <div class="wrap footrow">
         <span data-i18n="foot.tagline">Open-source · 100% offline · powered by cliply's clip engine</span>
         <span>
-          <a href="https://github.com/cliply-video/cliply-exporter">GitHub</a> ·
-          <span data-i18n="foot.cloud">Need cloud, teams &amp; live sharing?</span>
-          <a href="https://cliply.video/?utm_source=exporter&amp;utm_medium=site&amp;utm_campaign=exporter&amp;utm_content=footer">cliply.video ↗</a>
+          <a href="https://github.com/cliply-video/cliply-exporter">GitHub</a>
+          <a class="sign" href="https://cliply.video/?utm_source=exporter&amp;utm_medium=site&amp;utm_campaign=exporter&amp;utm_content=footer"><span data-i18n="foot.productOf">A product of</span> <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M73.3 26.7A33 33 0 1 0 73.3 73.3" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" /><path d="M44 33 71 50 44 67Z" fill="currentColor" /></svg><b>cliply</b></a>
         </span>
       </div>
     </footer>
@@ -771,7 +808,7 @@
           "win.note": "<strong>Windows:</strong> on the SmartScreen prompt, click <strong>More info → Run anyway</strong>.",
           "firstrun.note": "On first launch the app downloads ffmpeg + yt-dlp from their official sources (checksum-verified).",
           "foot.tagline": "Open-source · 100% offline · powered by cliply's clip engine",
-          "foot.cloud": "Need cloud, teams & live sharing?",
+          "foot.productOf": "A product of",
           "dl.for": "Download for ",
           "dl.also": "Free & open-source · also on ",
           "dl.allInline": "all downloads",
@@ -825,7 +862,7 @@
           "win.note": "<strong>Windows:</strong> en el aviso de SmartScreen, hacé clic en <strong>Más información → Ejecutar de todas formas</strong>.",
           "firstrun.note": "En el primer inicio la app descarga ffmpeg + yt-dlp de sus fuentes oficiales (verificadas por checksum).",
           "foot.tagline": "Código abierto · 100% offline · con el motor de clips de cliply",
-          "foot.cloud": "¿Nube, equipos y compartir en vivo?",
+          "foot.productOf": "Un producto de",
           "dl.for": "Descargar para ",
           "dl.also": "Gratis y código abierto · también en ",
           "dl.allInline": "todas las descargas",
