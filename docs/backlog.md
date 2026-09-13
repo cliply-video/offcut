@@ -1,5 +1,7 @@
 # Cliply Exporter — Backlog de Producto/Ingeniería
 
+*Nota: el producto se renombró a **Offcut** (el repo y el bundle id no cambian). Este doc queda como registro histórico.*
+
 **Fecha:** 2026-06-15
 **Repositorio:** `~/Development/cliply-oss` (Tauri v2 + React/TypeScript, totalmente offline)
 

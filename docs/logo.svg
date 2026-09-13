@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -10 100 112" fill="none" role="img" aria-label="cliply">
-  <g fill="none" stroke="#ffb8d1" stroke-width="5" stroke-linecap="round">
-    <path d="M41 16 Q50 8 59 16" />
-    <path d="M36 13 Q50 1 64 13" />
-    <path d="M31 10 Q50 -6 69 10" />
-  </g>
-  <path d="M73.3 26.7 A33 33 0 1 0 73.3 73.3" stroke="#ffb8d1" stroke-width="9" stroke-linecap="round" fill="none" />
-  <path d="M44 33 L71 50 L44 67 Z" fill="#ffb8d1" />
-</svg>

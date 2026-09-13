@@ -1,5 +1,7 @@
 # OSS Clip Cutter — Implementation Plan
 
+*Note: this product has since been renamed **Offcut** (repo and bundle id unchanged). This doc is kept as historical record.*
+
 > Status: Draft · 2026-06-15
 
 ---
