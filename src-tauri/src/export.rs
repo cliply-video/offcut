@@ -195,11 +195,9 @@ fn reencode_args() -> Vec<String> {
     }
 }
 
-// Top-right logo overlay, sized to 10% of the video height so it stays small
-// but legible at any resolution. scale2ref reads the logo's own aspect (iw/ih)
-// and the main video's height (main_h); padding tracks the height too.
+// scale2ref naming is inverted: iw/ih = reference video, main_w/main_h = logo.
 fn watermark_filter() -> String {
-    "[1:v][0:v]scale2ref=w=main_h*0.10*iw/ih:h=main_h*0.10[wm][base];\
+    "[1:v][0:v]scale2ref=w=min(iw\\,ih)*0.08*main_w/main_h:h=min(iw\\,ih)*0.08[wm][base];\
      [base][wm]overlay=W-w-H*0.03:H*0.03,format=yuv420p[v]"
         .replace(char::is_whitespace, "")
 }
