@@ -20,7 +20,7 @@ MP4s with ffmpeg — fully offline. No account, no cloud, no telemetry.
 <p>
   <a href="https://github.com/cliply-video/cliply-exporter/releases/latest"><b>↓&nbsp;Download</b></a>
   &nbsp;·&nbsp;
-  <a href="https://exporter.cliply.video">Website</a>
+  <a href="https://offcut.cliply.video">Website</a>
   &nbsp;·&nbsp;
   <a href="https://cliply.video">cliply.video&nbsp;↗</a>
 </p>
