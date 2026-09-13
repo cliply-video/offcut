@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import mascotSignal from "../assets/mascot-signal.svg";
 import { useT } from "../i18n";
 import { playSfx } from "../lib/sfx";
-import { CliplyMark, ExporterMark } from "./logo";
+import { CliplyMark, OffcutMark } from "./logo";
 
 const VERSION = __APP_VERSION__;
 
-// Boot splash — the Signal mascot peeks in from the lower-left while the Exporter
+// Boot splash — the Signal mascot peeks in from the lower-left while the Offcut
 // lockup boots in the center. Plays the clip chime on mount.
 export function Splash({ onDone }: { onDone: () => void }) {
   const { t } = useT();
@@ -33,8 +33,8 @@ export function Splash({ onDone }: { onDone: () => void }) {
 
       <div className="splash-stage">
         <div className="splash-lockup">
-          <ExporterMark className="splash-mark" />
-          <span className="splash-word">Exporter</span>
+          <OffcutMark className="splash-mark" />
+          <span className="splash-word">Offcut</span>
         </div>
         <span className="splash-by">
           {t("footer.productOf")} <CliplyMark className="by-mark" />

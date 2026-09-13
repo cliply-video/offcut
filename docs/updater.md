@@ -1,6 +1,6 @@
 # Auto-updater (Tauri v2)
 
-Cliply Exporter ships with `tauri-plugin-updater` + `tauri-plugin-process`
+Offcut ships with `tauri-plugin-updater` + `tauri-plugin-process`
 already wired up. What's left is generating a signing keypair and telling
 GitHub Actions about it — both one-time steps.
 

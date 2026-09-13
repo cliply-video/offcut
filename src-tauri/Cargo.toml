@@ -1,7 +1,7 @@
 [package]
 name = "cliply-exporter"
 version = "0.3.1"
-description = "Cliply Exporter — open-source desktop clip cutter (YouTube + analysis XML in, MP4 clips out)."
+description = "Offcut by cliply — open-source desktop clip cutter (YouTube + analysis XML in, MP4 clips out)."
 edition = "2021"
 license = "Apache-2.0"
 

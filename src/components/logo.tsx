@@ -1,8 +1,8 @@
 import { useT } from "../i18n";
 import { cliplyUrl, openExternal } from "../lib/links";
 
-// Exporter mark: in/out cut brackets with an export arrow leaving the frame.
-export function ExporterMark({ className }: { className?: string }) {
+// Offcut mark: a 3×3 dot-matrix block with its corner piece cut off and nudged out.
+export function OffcutMark({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 100 100"
@@ -11,10 +11,16 @@ export function ExporterMark({ className }: { className?: string }) {
       aria-hidden="true"
       className={className}
     >
-      <g stroke="currentColor" strokeWidth="10" strokeLinecap="square">
-        <path d="M14 42V14h28" />
-        <path d="M86 58v28H58" />
-        <path d="M36 64 70 30M46 28h26v26" />
+      <g fill="currentColor">
+        <rect x="8" y="14" width="22" height="22" />
+        <rect x="36" y="14" width="22" height="22" />
+        <rect x="72" y="6" width="22" height="22" />
+        <rect x="8" y="42" width="22" height="22" />
+        <rect x="36" y="42" width="22" height="22" />
+        <rect x="64" y="42" width="22" height="22" />
+        <rect x="8" y="70" width="22" height="22" />
+        <rect x="36" y="70" width="22" height="22" />
+        <rect x="64" y="70" width="22" height="22" />
       </g>
     </svg>
   );
@@ -48,9 +54,9 @@ export function CliplyMark({ className }: { className?: string }) {
 
 export function Logo() {
   return (
-    <span className="logo" role="img" aria-label="Cliply Exporter">
-      <ExporterMark className="logo-mark" />
-      <span className="logo-word">Exporter</span>
+    <span className="logo" role="img" aria-label="Offcut by cliply">
+      <OffcutMark className="logo-mark" />
+      <span className="logo-word">Offcut</span>
       <span className="logo-by">
         by <CliplyMark className="by-mark" />
         <span className="by-word">cliply</span>

@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cliply Exporter — open-source offline clip cutter</title>
+    <title>Offcut by cliply — open-source offline clip cutter</title>
     <meta
       name="description"
       content="Free, open-source desktop app. Paste a YouTube link, import your SportsCode / Nacsport XML, and export ready-to-share MP4 clips with ffmpeg. 100% offline — no account, no cloud."
     />
-    <meta property="og:title" content="Cliply Exporter" />
+    <meta property="og:title" content="Offcut by cliply" />
     <meta
       property="og:description"
       content="Open-source offline clip cutter: YouTube + analysis XML in, MP4 clips out."
@@ -26,7 +26,7 @@
       rel="stylesheet"
     />
     <style>
-      /* mirrors the app (src/styles.css): own Exporter mark, graphite field,
+      /* mirrors the app (src/styles.css): own Offcut mark, graphite field,
          signal-cyan accent, Doto dot-matrix display + IBM Plex Mono labels +
          Hanken body, scanline field. Family cues: SMPTE strip + "a product of
          cliply". Pink (--cliply) only on things that lead to cliply.video. */
@@ -623,9 +623,9 @@
   <body>
     <div class="smpte" aria-hidden="true"></div>
     <nav>
-      <span class="logo" aria-label="Cliply Exporter">
-        <svg class="mark" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="square" aria-hidden="true"><path d="M14 42V14h28" /><path d="M86 58v28H58" /><path d="M36 64 70 30M46 28h26v26" /></svg>
-        <span class="wm">Exporter</span>
+      <span class="logo" aria-label="Offcut by cliply">
+        <svg class="mark" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true"><rect x="8" y="14" width="22" height="22" /><rect x="36" y="14" width="22" height="22" /><rect x="72" y="6" width="22" height="22" /><rect x="8" y="42" width="22" height="22" /><rect x="36" y="42" width="22" height="22" /><rect x="64" y="42" width="22" height="22" /><rect x="8" y="70" width="22" height="22" /><rect x="36" y="70" width="22" height="22" /><rect x="64" y="70" width="22" height="22" /></svg>
+        <span class="wm">Offcut</span>
         <a class="by" href="https://cliply.video/?utm_source=exporter&amp;utm_medium=site&amp;utm_campaign=exporter&amp;utm_content=header">by <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M73.3 26.7A33 33 0 1 0 73.3 73.3" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" /><path d="M44 33 71 50 44 67Z" fill="currentColor" /></svg><b>cliply</b></a>
       </span>
       <span class="navlinks">
@@ -659,7 +659,7 @@
       <div class="monitor">
         <span class="osd"><span class="rec"></span> <span data-i18n="shot.label">The app · home screen</span></span>
         <span class="corners"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></span>
-        <img src="screenshot.png" alt="Cliply Exporter — home screen" width="2000" height="775" loading="lazy" />
+        <img src="screenshot.png" alt="Offcut — home screen" width="2000" height="775" loading="lazy" />
       </div>
     </div>
 
@@ -728,16 +728,16 @@
       <div class="callout" id="macnote">
         <h3 data-i18n="mac.h">Running it on macOS</h3>
         <p data-i18n="mac.lead">
-          Cliply Exporter isn't notarized yet, so macOS blocks unsigned apps the
+          Offcut isn't notarized yet, so macOS blocks unsigned apps the
           first time. One-time fix:
         </p>
         <ol>
-          <li data-i18n-html="mac.s1">Open the .dmg and drag <strong>Cliply Exporter</strong> into Applications.</li>
+          <li data-i18n-html="mac.s1">Open the .dmg and drag <strong>Offcut</strong> into Applications.</li>
           <li data-i18n-html="mac.s2">Double-click it once — you'll get a security warning. That's expected; close it.</li>
           <li data-i18n-html="mac.s3">Open <strong>System Settings → Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong>. Confirm once — done.</li>
         </ol>
         <p data-i18n="mac.term">Prefer Terminal? This clears the quarantine flag on any macOS version:</p>
-        <code class="cmd">xattr -dr com.apple.quarantine "/Applications/Cliply Exporter.app"</code>
+        <code class="cmd">xattr -dr com.apple.quarantine "/Applications/Offcut.app"</code>
       </div>
       <p class="note">
         <span data-i18n-html="win.note"><strong>Windows:</strong> on the SmartScreen prompt, click <strong>More info → Run anyway</strong>.</span>
@@ -800,8 +800,8 @@
           "dl.get": "Download",
           "dl.all": "All builds ↗",
           "mac.h": "Running it on macOS",
-          "mac.lead": "Cliply Exporter isn't notarized yet, so macOS blocks unsigned apps the first time. One-time fix:",
-          "mac.s1": "Open the .dmg and drag <strong>Cliply Exporter</strong> into Applications.",
+          "mac.lead": "Offcut isn't notarized yet, so macOS blocks unsigned apps the first time. One-time fix:",
+          "mac.s1": "Open the .dmg and drag <strong>Offcut</strong> into Applications.",
           "mac.s2": "Double-click it once — you'll get a security warning. That's expected; close it.",
           "mac.s3": "Open <strong>System Settings → Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong>. Confirm once — done.",
           "mac.term": "Prefer Terminal? This clears the quarantine flag on any macOS version:",
@@ -854,8 +854,8 @@
           "dl.get": "Descargar",
           "dl.all": "Todas las builds ↗",
           "mac.h": "Cómo abrirla en macOS",
-          "mac.lead": "Cliply Exporter todavía no está notarizada, así que macOS bloquea apps sin firmar la primera vez. Solución (una sola vez):",
-          "mac.s1": "Abrí el .dmg y arrastrá <strong>Cliply Exporter</strong> a Aplicaciones.",
+          "mac.lead": "Offcut todavía no está notarizada, así que macOS bloquea apps sin firmar la primera vez. Solución (una sola vez):",
+          "mac.s1": "Abrí el .dmg y arrastrá <strong>Offcut</strong> a Aplicaciones.",
           "mac.s2": "Hacé doble clic una vez — vas a ver una advertencia de seguridad. Es normal, cerrala.",
           "mac.s3": "Abrí <strong>Ajustes del Sistema → Privacidad y seguridad</strong>, bajá hasta el final y tocá <strong>Abrir igualmente</strong>. Confirmá una vez — listo.",
           "mac.term": "¿Preferís la Terminal? Esto quita la marca de cuarentena en cualquier versión de macOS:",

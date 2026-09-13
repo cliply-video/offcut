@@ -71,7 +71,7 @@ Push a tag (`git tag -a v0.1.1 -m … && git push origin v0.1.1`). The macOS job
 now signs with the Developer ID cert and notarizes via `notarytool`. Verify:
 
 ```bash
-spctl -a -vvv "/Applications/Cliply Exporter.app"   # → accepted, source=Notarized Developer ID
+spctl -a -vvv "/Applications/Offcut.app"   # → accepted, source=Notarized Developer ID
 ```
 
 Then drop the "Running it on macOS" workaround from the landing page.

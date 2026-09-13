@@ -5,7 +5,7 @@
   <img src="docs/lockup-ink.png" width="300" alt="Cliply" />
 </picture>
 
-# Cliply&nbsp;Exporter
+# Offcut <sub>by cliply</sub>
 
 <b>Open-source desktop clip cutter.</b><br />
 Paste a link, import your analysis XML, review the clips, and export
