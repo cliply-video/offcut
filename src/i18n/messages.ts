@@ -54,19 +54,29 @@ export const messages: Record<Locale, Record<string, string>> = {
     "import.eyebrow": "Step 2 · optional",
     "import.title": "Import clips",
     "import.body":
-      "Paste the analysis XML URL, or choose a SportsCode / Nacsport file. No XML? Just keep the downloaded video.",
-    "import.bodyLocal":
       "Paste the analysis XML URL, or choose a SportsCode / Nacsport file to cut your video into tagged clips.",
     "import.choose": "Choose file",
     "import.urlPlaceholder": "Cliply XML URL, from your platform, or similar",
     "import.loadUrl": "Load XML",
     "import.working": "Working…",
-    "import.noxml": "No XML — save the video",
+    "import.noxmlLabel": "No XML?",
+    "import.noxmlHint":
+      "Save the full video to your computer, or tag it and cut clips on cliply.video.",
+    "import.noxmlHintLocal": "Tag your video and cut clips on cliply.video.",
+    "import.saveVideo": "Save full video",
     "import.savedEyebrow": "Done",
     "import.savedTitle": "Video saved",
     "import.another": "Download another",
     "import.reveal": "Show in Finder",
     "import.noClips": "No clips found in this XML",
+
+    "handoff.noxmlCta": "Tag it on cliply",
+    "handoff.saved":
+      "Want to cut this match into clips and share them with your team? Do it on cliply.",
+    "handoff.savedCta": "Go to cliply",
+    "handoff.exported":
+      "Want your team and players to watch these clips? Share them live on cliply.",
+    "handoff.exportedCta": "Share on cliply",
 
     "clips.selected": "{sel} / {total} selected",
     "clips.selectAll": "Select all",
@@ -186,19 +196,29 @@ export const messages: Record<Locale, Record<string, string>> = {
     "import.eyebrow": "Paso 2 · opcional",
     "import.title": "Importar clips",
     "import.body":
-      "Pegá la URL del XML de análisis o elegí un archivo de SportsCode / Nacsport. ¿Sin XML? Quedate con el video descargado.",
-    "import.bodyLocal":
       "Pegá la URL del XML de análisis o elegí un archivo de SportsCode / Nacsport para cortar tu video en clips etiquetados.",
     "import.choose": "Elegir archivo",
     "import.urlPlaceholder": "URL del XML de Cliply, de tu plataforma o similar",
     "import.loadUrl": "Cargar XML",
     "import.working": "Procesando…",
-    "import.noxml": "Sin XML — guardar el video",
+    "import.noxmlLabel": "¿Sin XML?",
+    "import.noxmlHint":
+      "Guardá el video completo en tu equipo, o etiquetalo y cortá clips en cliply.video.",
+    "import.noxmlHintLocal": "Etiquetá tu video y cortá clips en cliply.video.",
+    "import.saveVideo": "Guardar video completo",
     "import.savedEyebrow": "Listo",
     "import.savedTitle": "Video guardado",
     "import.another": "Descargar otro",
     "import.reveal": "Mostrar en Finder",
     "import.noClips": "No se encontraron clips en este XML",
+
+    "handoff.noxmlCta": "Etiquetar en cliply",
+    "handoff.saved":
+      "¿Querés cortar este partido en clips y compartirlos con tu equipo? Hacelo en cliply.",
+    "handoff.savedCta": "Ir a cliply",
+    "handoff.exported":
+      "¿Querés que tu equipo y jugadores vean estos clips? Compartilos en vivo en cliply.",
+    "handoff.exportedCta": "Compartir en cliply",
 
     "clips.selected": "{sel} / {total} seleccionados",
     "clips.selectAll": "Seleccionar todo",

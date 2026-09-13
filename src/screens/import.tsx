@@ -1,26 +1,38 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useState } from "react";
-import { FolderIcon } from "../components/icons";
+import { Handoff } from "../components/handoff";
+import { DownloadIcon, FolderIcon } from "../components/icons";
 import { useT } from "../i18n";
 import { copyFile, fetchXmlUrl, readXmlFile } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 import { getVideo, saveParsed } from "../lib/db";
+import { cliplyUrl, openExternal } from "../lib/links";
 import { parseSportXml } from "../lib/xml";
+
+// Mirrors export.rs `sanitize` so saved videos and exported folders share names.
+function fileName(title: string): string {
+  const cleaned = title
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .trim()
+    .replace(/^\.+|\.+$/g, "");
+  return Array.from(cleaned).slice(0, 80).join("") || "video";
+}
 
 export function ImportXml({
   videoId,
   onDone,
   onBack,
-  onHome,
+  onAnother,
 }: {
   videoId: string;
   onDone: () => void;
   onBack: () => void;
-  onHome: () => void;
+  onAnother: () => void;
 }) {
   const { t } = useT();
   const [src, setSrc] = useState("");
+  const [title, setTitle] = useState("");
   // Local picks store an empty url; downloaded videos carry their source url.
   const [isLocal, setIsLocal] = useState(false);
   const [xmlUrl, setXmlUrl] = useState("");
@@ -32,6 +44,7 @@ export function ImportXml({
     getVideo(videoId).then((v) => {
       if (v) {
         setSrc(v.local_path);
+        setTitle(v.title);
         setIsLocal(!v.url);
       }
     });
@@ -83,7 +96,7 @@ export function ImportXml({
     if (!src) return;
     setError(null);
     const dest = await save({
-      defaultPath: "video.mp4",
+      defaultPath: `${fileName(title)}.mp4`,
       filters: [{ name: "Video", extensions: ["mp4"] }],
     });
     if (!dest) return;
@@ -96,7 +109,7 @@ export function ImportXml({
     } finally {
       setBusy(false);
     }
-  }, [src]);
+  }, [src, title, t]);
 
   if (savedTo) {
     return (
@@ -117,10 +130,15 @@ export function ImportXml({
             >
               {t("import.reveal")}
             </button>
-            <button type="button" className="btn-lg" onClick={onHome}>
+            <button type="button" className="btn-lg" onClick={onAnother}>
               {t("import.another")}
             </button>
           </div>
+          <Handoff
+            text={t("handoff.saved")}
+            cta={t("handoff.savedCta")}
+            touchpoint="video_saved"
+          />
         </div>
       </div>
     );
@@ -134,7 +152,7 @@ export function ImportXml({
           <h1 className="display">{t("import.title")}</h1>
         </div>
 
-        <p className="lead">{t(isLocal ? "import.bodyLocal" : "import.body")}</p>
+        <p className="lead">{t("import.body")}</p>
 
         <div style={{ display: "grid", gap: 12 }}>
           <input
@@ -169,6 +187,17 @@ export function ImportXml({
               <FolderIcon size={14} />
               {t("import.choose")}
             </button>
+          </div>
+        </div>
+
+        <div className="noxml">
+          <div className="noxml-copy">
+            <span className="field-label">{t("import.noxmlLabel")}</span>
+            <span className="field-hint">
+              {t(isLocal ? "import.noxmlHintLocal" : "import.noxmlHint")}
+            </span>
+          </div>
+          <div className="row noxml-actions">
             {!isLocal && (
               <button
                 type="button"
@@ -176,9 +205,17 @@ export function ImportXml({
                 onClick={saveVideo}
                 disabled={busy || !src}
               >
-                {t("import.noxml")}
+                <DownloadIcon size={13} />
+                {t("import.saveVideo")}
               </button>
             )}
+            <button
+              type="button"
+              className="link-inline"
+              onClick={() => openExternal(cliplyUrl("no_xml"))}
+            >
+              {t("handoff.noxmlCta")} ↗
+            </button>
           </div>
         </div>
 

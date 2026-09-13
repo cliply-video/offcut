@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useT } from "../i18n";
-import { CLIPLY_URL, GITHUB_URL, openExternal } from "../lib/links";
+import { cliplyUrl, GITHUB_URL, openExternal } from "../lib/links";
 import { Logo } from "./logo";
 import { FieldTexture, StatusPill } from "./osd";
 import { Stepper } from "./stepper";
@@ -82,7 +82,7 @@ export function Shell({
           <button
             type="button"
             className="link-inline"
-            onClick={() => openExternal(CLIPLY_URL)}
+            onClick={() => openExternal(cliplyUrl("statusbar"))}
           >
             cliply.video ↗
           </button>

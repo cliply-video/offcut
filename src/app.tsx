@@ -96,7 +96,7 @@ export function App() {
           setStepName("clips");
         }}
         onBack={() => setStepName("video")}
-        onHome={goHome}
+        onAnother={startFresh}
       />
     );
   } else if (stepName === "clips" && videoId) {

@@ -8,6 +8,7 @@ import {
   DownloadIcon,
   FolderIcon,
 } from "../components/icons";
+import { Handoff } from "../components/handoff";
 import { Corners } from "../components/osd";
 import { useT } from "../i18n";
 import { friendlyError } from "../lib/errors";
@@ -346,6 +347,11 @@ export function ExportDialog({
                   reels: summary.reels,
                 })}
               </p>
+              <Handoff
+                text={t("handoff.exported")}
+                cta={t("handoff.exportedCta")}
+                touchpoint="export_done"
+              />
             </div>
             <div className="drawer-footer">
               <button type="button" className="ghost" onClick={onClose}>
