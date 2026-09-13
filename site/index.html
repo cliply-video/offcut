@@ -91,7 +91,7 @@
         z-index: 1;
         max-width: 1080px;
         margin: 0 auto;
-        padding: 0 24px;
+        padding-inline: 24px;
       }
       a {
         color: inherit;
@@ -157,8 +157,9 @@
       }
       .navlinks {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 18px;
+        gap: 10px 18px;
         font-family: var(--mono);
         font-size: 11px;
         letter-spacing: 0.1em;
@@ -236,7 +237,7 @@
 
       /* ---- hero ---- */
       .hero {
-        padding: 76px 0 40px;
+        padding-block: 76px 40px;
       }
       .hero .eyebrow {
         margin-bottom: 18px;
@@ -366,7 +367,7 @@
 
       /* ---- sections ---- */
       section {
-        padding: 76px 0 0;
+        padding-top: 76px;
       }
       .sec-head {
         display: flex;
@@ -392,6 +393,19 @@
         line-height: 1.5;
         margin: 0;
       }
+      .sec-head .more {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        transition: color 0.15s var(--ease);
+      }
+      .sec-head .more:hover {
+        color: var(--pink);
+      }
       .grid {
         display: grid;
         gap: 1px;
@@ -406,10 +420,6 @@
         position: relative;
         background: var(--surface);
         padding: 26px;
-        transition: background-color 0.15s var(--ease);
-      }
-      .card:hover {
-        background: var(--surface-2);
       }
       .card .n {
         font-family: var(--mono);
@@ -425,6 +435,9 @@
         letter-spacing: 0.06em;
         margin: 14px 0 8px;
         font-size: 14px;
+      }
+      .card h3:first-child {
+        margin-top: 0;
       }
       .card p {
         margin: 0;
@@ -461,19 +474,6 @@
       .dlcard .btn {
         margin-top: auto;
         justify-content: center;
-      }
-      .dlcard .alt {
-        display: block;
-        margin-top: 10px;
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--muted);
-        text-decoration: none;
-      }
-      .dlcard .alt:hover {
-        color: var(--ink);
       }
 
       .callout {
@@ -570,6 +570,9 @@
         section {
           padding-top: 56px;
         }
+        .sec-head .more {
+          margin-left: 0;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         .monitor .rec {
@@ -665,6 +668,7 @@
       <div class="sec-head">
         <h2 data-i18n="dl.h2">Download</h2>
         <p class="sub2" id="dl-sub2" data-i18n="dl.sub">Latest release · free forever.</p>
+        <a class="more" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.all">All builds ↗</a>
       </div>
       <div class="grid downloads">
         <div class="card dlcard">
@@ -681,7 +685,6 @@
           <div class="os">Linux</div>
           <div class="meta" data-i18n="dl.linuxMeta">AppImage or Debian package</div>
           <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.get">Download</a>
-          <a class="alt" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.all">All builds ↗</a>
         </div>
       </div>
       <div class="callout" id="macnote">
