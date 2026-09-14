@@ -9,11 +9,20 @@ die() { printf '\033[31merror:\033[0m %s\n' "$1" >&2; exit 1; }
 
 [ "$(uname -s)" = "Darwin" ] || die "this installer is macOS-only. Other platforms: https://offcut.cliply.video/#download"
 
-# Asset prefix changed across renames (Cliply.Exporter_ → Offcut_), so match the suffix.
-url=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null \
-  | grep -o '"browser_download_url": *"[^"]*_universal\.app\.tar\.gz"' \
-  | head -n 1 | sed 's/.*"\(https:[^"]*\)"/\1/' || true)
-[ -n "$url" ] || url="https://github.com/$REPO/releases/latest/download/Offcut_universal.app.tar.gz"
+# The updater manifest has the exact asset URL (names changed across renames) and,
+# unlike the GitHub API, isn't rate-limited.
+manifest=$(curl -fsSL "https://github.com/$REPO/releases/latest/download/latest.json") \
+  || die "could not reach GitHub Releases"
+case "$(uname -m)" in
+  arm64) key="darwin-aarch64" ;;
+  *) key="darwin-x86_64" ;;
+esac
+url=$(printf '%s\n' "$manifest" | awk -v k="\"$key\"" '
+  index($0, k) { found = 1 }
+  found && /"url"/ { sub(/.*"url": *"/, ""); sub(/".*/, ""); print; exit }')
+case "$url" in *.app.tar.gz) ;; *) url="" ;; esac
+[ -n "$url" ] || url=$(printf '%s\n' "$manifest" | grep -o 'https://[^"]*\.app\.tar\.gz' | head -n 1)
+[ -n "$url" ] || die "no macOS build in the latest release"
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
