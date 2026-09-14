@@ -502,6 +502,17 @@
         margin-top: auto;
         justify-content: center;
       }
+      .dlcard .alt {
+        align-self: flex-start;
+        margin: -8px 0 18px;
+        color: var(--accent);
+        font-family: var(--mono);
+        font-size: 12px;
+        text-decoration: none;
+      }
+      .dlcard .alt:hover {
+        text-decoration: underline;
+      }
 
       .callout {
         margin: 28px 0 0;
@@ -540,6 +551,26 @@
       }
       .callout strong {
         color: var(--ink);
+      }
+      .callout a {
+        color: var(--accent);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .cmdrow {
+        display: flex;
+        gap: 8px;
+        margin: 10px 0 18px;
+      }
+      .cmdrow code.cmd {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        white-space: nowrap;
+      }
+      .btn.copy {
+        flex: none;
+        padding-block: 0;
       }
       code.cmd {
         display: block;
@@ -712,6 +743,7 @@
         <div class="card dlcard">
           <div class="os">macOS</div>
           <div class="meta" data-i18n="dl.macMeta">Universal · Intel &amp; Apple Silicon</div>
+          <a class="alt" href="#macnote" data-i18n="dl.macAlt">Or install from Terminal ↓</a>
           <a class="btn primary" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="dl.get">Download</a>
         </div>
         <div class="card dlcard">
@@ -727,9 +759,18 @@
       </div>
       <div class="callout" id="macnote">
         <h3 data-i18n="mac.h">Running it on macOS</h3>
+        <p data-i18n-html="mac.online">
+          Fastest: install from Terminal. It grabs the latest release from GitHub, puts
+          <strong>Offcut</strong> in Applications and opens it — no security prompt.
+          <a href="install.sh">Read the script ↗</a>
+        </p>
+        <div class="cmdrow">
+          <code class="cmd" id="install-cmd">curl -fsSL https://offcut.cliply.video/install.sh | sh</code>
+          <button class="btn copy" type="button" data-copy="install-cmd" data-i18n="copy">Copy</button>
+        </div>
         <p data-i18n="mac.lead">
-          Offcut isn't notarized yet, so macOS blocks unsigned apps the
-          first time. One-time fix:
+          Using the .dmg instead? Offcut isn't notarized yet, so macOS blocks
+          unsigned apps the first time. One-time fix:
         </p>
         <ol>
           <li data-i18n-html="mac.s1">Open the .dmg and drag <strong>Offcut</strong> into Applications.</li>
@@ -795,12 +836,16 @@
           "dl.h2": "Download",
           "dl.sub": "Latest release · free forever.",
           "dl.macMeta": "Universal · Intel & Apple Silicon",
+          "dl.macAlt": "Or install from Terminal ↓",
           "dl.winMeta": "64-bit installer",
           "dl.linuxMeta": "AppImage or Debian package",
           "dl.get": "Download",
           "dl.all": "All builds ↗",
           "mac.h": "Running it on macOS",
-          "mac.lead": "Offcut isn't notarized yet, so macOS blocks unsigned apps the first time. One-time fix:",
+          "mac.online": "Fastest: install from Terminal. It grabs the latest release from GitHub, puts <strong>Offcut</strong> in Applications and opens it — no security prompt. <a href=\"install.sh\">Read the script ↗</a>",
+          "copy": "Copy",
+          "copied": "Copied",
+          "mac.lead": "Using the .dmg instead? Offcut isn't notarized yet, so macOS blocks unsigned apps the first time. One-time fix:",
           "mac.s1": "Open the .dmg and drag <strong>Offcut</strong> into Applications.",
           "mac.s2": "Double-click it once — you'll get a security warning. That's expected; close it.",
           "mac.s3": "Open <strong>System Settings → Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong>. Confirm once — done.",
@@ -849,12 +894,16 @@
           "dl.h2": "Descargar",
           "dl.sub": "Última versión · gratis para siempre.",
           "dl.macMeta": "Universal · Intel y Apple Silicon",
+          "dl.macAlt": "O instalá desde la Terminal ↓",
           "dl.winMeta": "Instalador 64-bit",
           "dl.linuxMeta": "AppImage o paquete Debian",
           "dl.get": "Descargar",
           "dl.all": "Todas las builds ↗",
           "mac.h": "Cómo abrirla en macOS",
-          "mac.lead": "Offcut todavía no está notarizada, así que macOS bloquea apps sin firmar la primera vez. Solución (una sola vez):",
+          "mac.online": "Lo más rápido: instalá desde la Terminal. Baja la última versión de GitHub, deja <strong>Offcut</strong> en Aplicaciones y la abre — sin aviso de seguridad. <a href=\"install.sh\">Ver el script ↗</a>",
+          "copy": "Copiar",
+          "copied": "Copiado",
+          "mac.lead": "¿Usás el .dmg? Offcut todavía no está notarizada, así que macOS bloquea apps sin firmar la primera vez. Solución (una sola vez):",
           "mac.s1": "Abrí el .dmg y arrastrá <strong>Offcut</strong> a Aplicaciones.",
           "mac.s2": "Hacé doble clic una vez — vas a ver una advertencia de seguridad. Es normal, cerrala.",
           "mac.s3": "Abrí <strong>Ajustes del Sistema → Privacidad y seguridad</strong>, bajá hasta el final y tocá <strong>Abrir igualmente</strong>. Confirmá una vez — listo.",
@@ -902,10 +951,22 @@
             dict["dl.also"] + os.others.join(" & ") +
             " — <a href='#download'>" + dict["dl.allInline"] + "</a>";
         }
+        currentDict = dict;
         var callout = document.querySelector(".callout");
         if (callout) callout.classList.toggle("hot", !!(os && os.name === "macOS"));
         try { localStorage.setItem("cliply.locale", lang); } catch (e) {}
       }
+
+      var currentDict = I18N.en;
+      document.querySelectorAll("[data-copy]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var text = document.getElementById(b.getAttribute("data-copy")).textContent;
+          navigator.clipboard.writeText(text).then(function () {
+            b.textContent = currentDict["copied"];
+            setTimeout(function () { b.textContent = currentDict["copy"]; }, 1500);
+          });
+        });
+      });
 
       (function () {
         var saved = null;
