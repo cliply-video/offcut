@@ -1,12 +1,12 @@
 [package]
-name = "cliply-exporter"
+name = "offcut"
 version = "0.3.1"
 description = "Offcut by cliply — open-source desktop clip cutter (YouTube + analysis XML in, MP4 clips out)."
 edition = "2021"
 license = "Apache-2.0"
 
 [lib]
-name = "cliply_exporter_lib"
+name = "offcut_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
