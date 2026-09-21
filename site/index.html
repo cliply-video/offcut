@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Offcut by cliply — open-source offline clip cutter</title>
+    <title>Offcut by cliply — open-source offline video tools</title>
     <meta
       name="description"
-      content="Free, open-source desktop app. Paste a YouTube link, import your SportsCode / Nacsport XML, and export ready-to-share MP4 clips with ffmpeg. 100% offline — no account, no cloud."
+      content="Free, open-source desktop app. Download a video, cut a match into clips from your SportsCode / Nacsport XML, join files, or convert formats — all with ffmpeg. 100% offline — no account, no cloud."
     />
     <meta property="og:title" content="Offcut by cliply" />
     <meta
       property="og:description"
-      content="Open-source offline clip cutter: YouTube + analysis XML in, MP4 clips out."
+      content="Open-source offline video tools: download, cut clips from your analysis XML, join and convert."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://offcut.cliply.video" />
@@ -441,9 +441,16 @@
         background: var(--line);
         border: 1px solid var(--line);
       }
-      .steps,
       .features {
         grid-template-columns: repeat(3, 1fr);
+      }
+      .steps {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      @media (max-width: 1040px) {
+        .steps {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
       .card {
         position: relative;
@@ -673,11 +680,11 @@
 
     <header class="hero wrap">
       <p class="eyebrow" data-i18n="hero.eyebrow">Open-source · 100% offline</p>
-      <h1><span data-i18n="hero.titleA">Turn a match into</span><br /><span class="accent" data-i18n="hero.titleB">shareable clips.</span></h1>
+      <h1><span data-i18n="hero.titleA">Download, cut, join, convert.</span><br /><span class="accent" data-i18n="hero.titleB">All on your machine.</span></h1>
       <p class="lead" data-i18n="hero.lead">
-        Paste a YouTube link, drop in your SportsCode / Nacsport analysis XML, and
-        export ready-to-cut MP4s — folders per tag and reels included. No account,
-        no cloud, nothing leaves your machine.
+        Save a video from YouTube, cut a match into tagged clips from your
+        SportsCode / Nacsport XML, join files, or convert formats — all with ffmpeg,
+        right on your computer. No account, no cloud, nothing leaves your machine.
       </p>
       <div class="cta">
         <a class="btn primary lg" id="primary-dl" href="https://github.com/cliply-video/cliply-exporter/releases/latest" data-i18n="hero.download">Download</a>
@@ -696,24 +703,29 @@
 
     <section class="wrap">
       <div class="sec-head">
-        <h2 data-i18n="how.h2">How it works</h2>
-        <p class="sub2" data-i18n="how.sub">Three steps, start to finished clips.</p>
+        <h2 data-i18n="how.h2">Four tools, one app</h2>
+        <p class="sub2" data-i18n="how.sub">Each one works on its own — and they hand files to each other.</p>
       </div>
       <div class="grid steps">
         <div class="card">
           <div class="n">01</div>
-          <h3 data-i18n="s1.t">Paste a link</h3>
-          <p data-i18n="s1.d">Any YouTube URL or video ID — downloaded locally with yt-dlp.</p>
+          <h3 data-i18n="s1.t">Download</h3>
+          <p data-i18n="s1.d">A YouTube link, video ID or direct URL, saved locally with yt-dlp.</p>
         </div>
         <div class="card">
           <div class="n">02</div>
-          <h3 data-i18n="s2.t">Import XML</h3>
-          <p data-i18n="s2.d">SportsCode / Nacsport tags become colored clips. No XML? Save the full match video.</p>
+          <h3 data-i18n="s2.t">Clips</h3>
+          <p data-i18n="s2.d">SportsCode / Nacsport tags become colored clips. Export MP4s in per-tag folders, plus reels.</p>
         </div>
         <div class="card">
           <div class="n">03</div>
-          <h3 data-i18n="s3.t">Export</h3>
-          <p data-i18n="s3.d">MP4s in per-tag folders, plus reels. Stream-copy fast, or re-encode.</p>
+          <h3 data-i18n="s3.t">Join</h3>
+          <p data-i18n="s3.d">Stitch videos in the order you set. Files that match are joined instantly, with no re-encode.</p>
+        </div>
+        <div class="card">
+          <div class="n">04</div>
+          <h3 data-i18n="s4.t">Convert</h3>
+          <p data-i18n="s4.d">MP4, MOV, MKV, WebM or audio only. Shrink to a target size, mute a video, or just change the container in seconds.</p>
         </div>
       </div>
     </section>
@@ -804,21 +816,23 @@
           "nav.features": "Features",
           "nav.download": "Download",
           "hero.eyebrow": "Open-source · 100% offline",
-          "hero.titleA": "Turn a match into",
-          "hero.titleB": "shareable clips.",
-          "hero.lead": "Paste a YouTube link, drop in your SportsCode / Nacsport analysis XML, and export ready-to-cut MP4s — folders per tag and reels included. No account, no cloud, nothing leaves your machine.",
+          "hero.titleA": "Download, cut, join, convert.",
+          "hero.titleB": "All on your machine.",
+          "hero.lead": "Save a video from YouTube, cut a match into tagged clips from your SportsCode / Nacsport XML, join files, or convert formats — all with ffmpeg, right on your computer. No account, no cloud, nothing leaves your machine.",
           "hero.download": "Download",
           "hero.github": "View on GitHub",
           "hero.sub": "Free & open-source · macOS · Windows · Linux",
           "shot.label": "The app · home screen",
-          "how.h2": "How it works",
-          "how.sub": "Three steps, start to finished clips.",
-          "s1.t": "Paste a link",
-          "s1.d": "Any YouTube URL or video ID — downloaded locally with yt-dlp.",
-          "s2.t": "Import XML",
-          "s2.d": "SportsCode / Nacsport tags become colored clips. No XML? Save the full match video.",
-          "s3.t": "Export",
-          "s3.d": "MP4s in per-tag folders, plus reels. Stream-copy fast, or re-encode.",
+          "how.h2": "Four tools, one app",
+          "how.sub": "Each one works on its own — and they hand files to each other.",
+          "s1.t": "Download",
+          "s1.d": "A YouTube link, video ID or direct URL, saved locally with yt-dlp.",
+          "s2.t": "Clips",
+          "s2.d": "SportsCode / Nacsport tags become colored clips. Export MP4s in per-tag folders, plus reels.",
+          "s3.t": "Join",
+          "s3.d": "Stitch videos in the order you set. Files that match are joined instantly, with no re-encode.",
+          "s4.t": "Convert",
+          "s4.d": "MP4, MOV, MKV, WebM or audio only. Shrink to a target size, mute a video, or just change the container in seconds.",
           "feat.h2": "Built for analysts",
           "feat.sub": "Everything runs on your machine. No sign-up, no upload, no telemetry.",
           "f1.t": "100% offline",
@@ -862,21 +876,23 @@
           "nav.features": "Funciones",
           "nav.download": "Descargar",
           "hero.eyebrow": "Código abierto · 100% offline",
-          "hero.titleA": "Convertí un partido en",
-          "hero.titleB": "clips para compartir.",
-          "hero.lead": "Pegá un enlace de YouTube, sumá tu XML de análisis de SportsCode / Nacsport y exportá MP4s listos — carpetas por etiqueta y reels incluidos. Sin cuenta, sin nube, nada sale de tu equipo.",
+          "hero.titleA": "Descargá, cortá, uní, convertí.",
+          "hero.titleB": "Todo en tu equipo.",
+          "hero.lead": "Guardá un video de YouTube, cortá un partido en clips etiquetados desde tu XML de SportsCode / Nacsport, uní archivos o convertí formatos — todo con ffmpeg, en tu computadora. Sin cuenta, sin nube, nada sale de tu equipo.",
           "hero.download": "Descargar",
           "hero.github": "Ver en GitHub",
           "hero.sub": "Gratis y código abierto · macOS · Windows · Linux",
           "shot.label": "La app · pantalla de inicio",
-          "how.h2": "Cómo funciona",
-          "how.sub": "Tres pasos, del link a los clips listos.",
-          "s1.t": "Pegá un enlace",
-          "s1.d": "Cualquier URL de YouTube o ID de video — se descarga local con yt-dlp.",
-          "s2.t": "Importá XML",
-          "s2.d": "Las etiquetas de SportsCode / Nacsport se vuelven clips con color. ¿Sin XML? Guardá el partido completo.",
-          "s3.t": "Exportá",
-          "s3.d": "MP4s en carpetas por etiqueta, más reels. Rápido por stream-copy, o recodificá.",
+          "how.h2": "Cuatro herramientas, una app",
+          "how.sub": "Cada una funciona sola — y se pasan archivos entre sí.",
+          "s1.t": "Descargar",
+          "s1.d": "Un link de YouTube, un ID o una URL directa, guardado local con yt-dlp.",
+          "s2.t": "Clips",
+          "s2.d": "Las etiquetas de SportsCode / Nacsport se vuelven clips con color. Exportá MP4s en carpetas por etiqueta, más reels.",
+          "s3.t": "Unir",
+          "s3.d": "Uní videos en el orden que definas. Los que coinciden se unen al instante, sin recodificar.",
+          "s4.t": "Convertir",
+          "s4.d": "MP4, MOV, MKV, WebM o solo audio. Achicá a un tamaño objetivo, sacale el sonido, o cambiá solo el contenedor en segundos.",
           "feat.h2": "Hecho para analistas",
           "feat.sub": "Todo corre en tu equipo. Sin registro, sin subidas, sin telemetría.",
           "f1.t": "100% offline",
