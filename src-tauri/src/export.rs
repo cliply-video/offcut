@@ -28,6 +28,17 @@ pub struct ExportState {
     cancel: Mutex<HashMap<String, Arc<AtomicBool>>>,
 }
 
+impl ExportState {
+    /// Flags every running export to stop; returns how many there were.
+    pub fn cancel_all(&self) -> usize {
+        let exports = self.cancel.lock().unwrap();
+        for flag in exports.values() {
+            flag.store(true, Ordering::Relaxed);
+        }
+        exports.len()
+    }
+}
+
 // Removes the export's cancel flag on any exit path (done, error, cancelled).
 struct CancelGuard<'a> {
     state: &'a ExportState,
@@ -97,6 +108,9 @@ pub struct ExportOptions {
     reencode: bool,
     /// Burn the Cliply mark into the top-right corner. Forces a re-encode.
     watermark: bool,
+    /// Cut the clips without their audio track (reels inherit it).
+    #[serde(default)]
+    mute: bool,
 }
 
 #[derive(Serialize)]
@@ -143,7 +157,7 @@ async fn run_ffmpeg(ffmpeg: &Path, args: &[String]) -> Result<(), String> {
     ))
 }
 
-fn sanitize(name: &str) -> String {
+pub(crate) fn sanitize(name: &str) -> String {
     let cleaned: String = name
         .chars()
         .map(|c| match c {
@@ -208,6 +222,7 @@ fn cut_args(
     start: f64,
     end: f64,
     reencode: bool,
+    mute: bool,
     out: &Path,
 ) -> Vec<String> {
     let duration = (end - start).max(0.1);
@@ -224,15 +239,21 @@ fn cut_args(
     }
     args.push("-t".into());
     args.push(format!("{duration:.3}"));
-    if let Some(_) = watermark {
+    if watermark.is_some() {
         // Overlay can't run on a stream copy — always re-encode when watermarking.
         args.extend(["-filter_complex".into(), watermark_filter()]);
-        args.extend(["-map".into(), "[v]".into(), "-map".into(), "0:a?".into()]);
+        args.extend(["-map".into(), "[v]".into()]);
+        if !mute {
+            args.extend(["-map".into(), "0:a?".into()]);
+        }
         args.extend(reencode_args());
     } else if reencode {
         args.extend(reencode_args());
     } else {
         args.extend(["-c".into(), "copy".into()]);
+    }
+    if mute {
+        args.push("-an".into());
     }
     args.push(out.to_string_lossy().into_owned());
     args
@@ -390,7 +411,15 @@ pub async fn export_clips(
         async move {
             let outcome = run_cut(
                 ffmpeg,
-                &cut_args(src, watermark_ref, job.start, job.end, options.reencode, &job.file),
+                &cut_args(
+                    src,
+                    watermark_ref,
+                    job.start,
+                    job.end,
+                    options.reencode,
+                    options.mute,
+                    &job.file,
+                ),
                 cancel_ref,
             )
             .await?;
@@ -468,4 +497,30 @@ pub async fn export_clips(
         out_dir: base.to_string_lossy().into_owned(),
         cancelled: false,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn args(watermark: bool, reencode: bool, mute: bool) -> String {
+        let logo = Path::new("logo.png");
+        cut_args("in.mp4", watermark.then_some(logo), 10.0, 15.0, reencode, mute, Path::new("out.mp4"))
+            .join(" ")
+    }
+
+    #[test]
+    fn muting_a_cut_keeps_it_a_stream_copy() {
+        let muted = args(false, false, true);
+        assert!(muted.contains("-c copy -an") && muted.ends_with("out.mp4"));
+        assert!(!args(false, false, false).contains("-an"));
+    }
+
+    #[test]
+    fn muting_drops_the_audio_map_from_a_watermarked_cut() {
+        let muted = args(true, false, true);
+        assert!(muted.contains("-map [v]") && !muted.contains("0:a?") && muted.contains("-an"));
+        assert!(args(true, false, false).contains("-map 0:a?"));
+        assert!(args(false, true, true).contains("-an"));
+    }
 }

@@ -1,8 +1,16 @@
 mod binaries;
+mod convert;
 mod download;
 mod export;
+mod jobs;
+mod join;
 mod media;
+mod probe;
 
+#[cfg(test)]
+mod ffmpeg_tests;
+
+use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 pub fn run() {
@@ -44,6 +52,7 @@ pub fn run() {
     builder
         .manage(download::DownloadState::default())
         .manage(export::ExportState::default())
+        .manage(jobs::Jobs::default())
         .invoke_handler(tauri::generate_handler![
             binaries::binaries_status,
             binaries::download_binaries,
@@ -54,11 +63,30 @@ pub fn run() {
             media::fetch_xml_url,
             media::generate_poster,
             media::copy_file,
+            media::move_file,
             media::probe_media,
             media::delete_media,
             export::export_clips,
-            export::cancel_export
+            export::cancel_export,
+            jobs::cancel_job,
+            join::plan_join,
+            join::run_join,
+            convert::plan_convert,
+            convert::run_convert
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|app, event| {
+            // A job's ffmpeg is killed, and its scratch dir swept, when its
+            // future unwinds — which a plain process exit never does. Quitting
+            // mid-encode would leave ffmpeg running and GBs of hidden scratch
+            // next to the output, so flag the jobs and give them a beat.
+            if let tauri::RunEvent::Exit = event {
+                let running = app.state::<jobs::Jobs>().cancel_all()
+                    + app.state::<export::ExportState>().cancel_all();
+                if running > 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(600));
+                }
+            }
+        });
 }

@@ -1,7 +1,7 @@
 //! Local media helpers: read analysis XML (BOM-aware) and generate clip
 //! poster frames with ffmpeg.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::OnceLock;
 
@@ -142,8 +142,66 @@ fn decode(buf: &[u8]) -> String {
 /// Copies a file (used to save a downloaded video out to a user-chosen path
 /// when no XML is imported).
 #[tauri::command]
-pub fn copy_file(src: String, dest: String) -> Result<(), String> {
-    std::fs::copy(&src, &dest).map_err(es)?;
+pub async fn copy_file(src: String, dest: String) -> Result<(), String> {
+    blocking(move || copy_guarded(Path::new(&src), Path::new(&dest))).await
+}
+
+/// Moves a file, falling back to copy + delete across volumes (rename can't
+/// cross them). Used to hand a downloaded video over to a user-chosen path
+/// without leaving a multi-GB duplicate in app data.
+#[tauri::command]
+pub async fn move_file(src: String, dest: String) -> Result<(), String> {
+    blocking(move || {
+        let (src, dest) = (Path::new(&src), Path::new(&dest));
+        if same_file(src, dest) || std::fs::rename(src, dest).is_ok() {
+            return Ok(());
+        }
+        copy_guarded(src, dest)?;
+        let _ = std::fs::remove_file(src);
+        Ok(())
+    })
+    .await
+}
+
+// A sync command runs on the main thread; copying a match-sized file there
+// freezes the window until it's done.
+async fn blocking<F>(work: F) -> Result<(), String>
+where
+    F: FnOnce() -> Result<(), String> + Send + 'static,
+{
+    tauri::async_runtime::spawn_blocking(work).await.map_err(es)?
+}
+
+/// True when both paths name one file on disk — also through a symlink, a hard
+/// link, or another spelling on a case-insensitive volume. Writing "to" such a
+/// path truncates the source before a byte is read.
+pub(crate) fn same_file(a: &Path, b: &Path) -> bool {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        match (std::fs::metadata(a), std::fs::metadata(b)) {
+            (Ok(ma), Ok(mb)) => ma.dev() == mb.dev() && ma.ino() == mb.ino(),
+            _ => false,
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        match (std::fs::canonicalize(a), std::fs::canonicalize(b)) {
+            (Ok(ca), Ok(cb)) => ca == cb,
+            _ => false,
+        }
+    }
+}
+
+// std::fs::copy onto the source itself "succeeds" and leaves it empty.
+fn copy_guarded(src: &Path, dest: &Path) -> Result<(), String> {
+    if same_file(src, dest) {
+        return Ok(());
+    }
+    if let Err(e) = std::fs::copy(src, dest) {
+        let _ = std::fs::remove_file(dest);
+        return Err(es(e));
+    }
     Ok(())
 }
 
@@ -201,4 +259,30 @@ pub async fn generate_poster(
         return Err("could not generate poster".to_string());
     }
     Ok(out_str)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn copying_a_file_onto_itself_leaves_it_intact() {
+        let dir = std::env::temp_dir().join(format!("offcut-media-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("match.mp4");
+        std::fs::write(&file, b"not empty").unwrap();
+
+        // The same file under another spelling, as a save dialog can hand back.
+        let alias = dir.join(".").join("match.mp4");
+        assert!(same_file(&file, &alias));
+        copy_guarded(&file, &alias).unwrap();
+        assert_eq!(std::fs::read(&file).unwrap(), b"not empty");
+
+        let other = dir.join("copy.mp4");
+        assert!(!same_file(&file, &other));
+        copy_guarded(&file, &other).unwrap();
+        assert_eq!(std::fs::read(&other).unwrap(), b"not empty");
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }
