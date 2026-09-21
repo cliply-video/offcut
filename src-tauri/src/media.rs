@@ -121,15 +121,19 @@ pub async fn fetch_xml_url(url: String) -> Result<String, String> {
 fn decode(buf: &[u8]) -> String {
     if buf.starts_with(&[0xff, 0xfe]) {
         let u: Vec<u16> = buf[2..]
-            .chunks_exact(2)
-            .map(|c| u16::from_le_bytes([c[0], c[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| u16::from_le_bytes(*c))
             .collect();
         return String::from_utf16_lossy(&u);
     }
     if buf.starts_with(&[0xfe, 0xff]) {
         let u: Vec<u16> = buf[2..]
-            .chunks_exact(2)
-            .map(|c| u16::from_be_bytes([c[0], c[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| u16::from_be_bytes(*c))
             .collect();
         return String::from_utf16_lossy(&u);
     }
@@ -266,6 +270,31 @@ pub async fn generate_poster(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn decodes_every_bom_nacsport_and_sportscode_write() {
+        let utf16 = |bom: [u8; 2], unit: fn(u16) -> [u8; 2]| {
+            let mut buf = bom.to_vec();
+            buf.extend("<tag>ñ</tag>".encode_utf16().flat_map(unit));
+            buf
+        };
+        assert_eq!(
+            decode(&utf16([0xff, 0xfe], u16::to_le_bytes)),
+            "<tag>ñ</tag>"
+        );
+        assert_eq!(
+            decode(&utf16([0xfe, 0xff], u16::to_be_bytes)),
+            "<tag>ñ</tag>"
+        );
+
+        // A stray trailing byte (truncated export) is dropped, not a panic.
+        let mut odd = utf16([0xff, 0xfe], u16::to_le_bytes);
+        odd.push(0x3c);
+        assert_eq!(decode(&odd), "<tag>ñ</tag>");
+
+        assert_eq!(decode(b"\xef\xbb\xbf<a/>"), "<a/>");
+        assert_eq!(decode("<a>ñ</a>".as_bytes()), "<a>ñ</a>");
+    }
 
     #[test]
     fn copying_a_file_onto_itself_leaves_it_intact() {
