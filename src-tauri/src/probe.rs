@@ -98,7 +98,8 @@ pub fn file_ext(path: &str) -> String {
 }
 
 fn num(v: &Value) -> Option<f64> {
-    v.as_f64().or_else(|| v.as_str().and_then(|s| s.parse().ok()))
+    v.as_f64()
+        .or_else(|| v.as_str().and_then(|s| s.parse().ok()))
 }
 
 // "30000/1001" → 29.97; "0/0" (unknown) → 0.
@@ -147,7 +148,11 @@ pub fn parse(v: &Value) -> FileProbe {
                 width,
                 height,
                 rotation: rot,
-                fps: if avg > 0.0 { avg } else { ratio(&s["r_frame_rate"]) },
+                fps: if avg > 0.0 {
+                    avg
+                } else {
+                    ratio(&s["r_frame_rate"])
+                },
                 config: s["extradata_hash"].as_str().unwrap_or_default().to_string(),
             }
         });
@@ -215,13 +220,21 @@ pub async fn probe_all(
         .map(|(file, res)| {
             let probe = res.ok().filter(|p| p.video.is_some() || p.audio.is_some());
             let managed = managed_root.is_some_and(|r| Path::new(&file.path).starts_with(r));
-            let title = file.title.as_deref().map(str::trim).filter(|t| managed && !t.is_empty());
+            let title = file
+                .title
+                .as_deref()
+                .map(str::trim)
+                .filter(|t| managed && !t.is_empty());
             FileEntry {
                 path: file.path.clone(),
                 name: title.map_or_else(|| file_name(&file.path), str::to_string),
                 stem: title.map_or_else(|| file_stem(&file.path), sanitize),
                 managed,
-                error: if probe.is_none() { Some("unreadable") } else { None },
+                error: if probe.is_none() {
+                    Some("unreadable")
+                } else {
+                    None
+                },
                 probe,
             }
         })
@@ -247,7 +260,10 @@ mod tests {
         let p = parse(&v);
         assert!(p.video.is_none());
         let a = p.audio.unwrap();
-        assert_eq!((a.index, a.codec.as_str(), a.sample_rate, a.channels), (1, "mp3", 44100, 2));
+        assert_eq!(
+            (a.index, a.codec.as_str(), a.sample_rate, a.channels),
+            (1, "mp3", 44100, 2)
+        );
         assert_eq!((p.duration_sec, p.size_bytes), (12.5, 2048));
     }
 
@@ -263,7 +279,10 @@ mod tests {
             "format": {}
         });
         let video = parse(&v).video.unwrap();
-        assert_eq!((video.width, video.height, video.rotation), (1080, 1920, 270));
+        assert_eq!(
+            (video.width, video.height, video.rotation),
+            (1080, 1920, 270)
+        );
         assert!((video.fps - 29.97).abs() < 0.01);
         assert_eq!(video.config, "SHA256:abc");
     }

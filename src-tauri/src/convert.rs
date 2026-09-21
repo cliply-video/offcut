@@ -129,7 +129,11 @@ const MIN_VIDEO_KBPS: u32 = 100;
 // Container overhead and single-pass rate control both overshoot a little.
 fn sized_video_kbps(size_mb: f64, duration_sec: f64, has_audio: bool) -> u32 {
     let total = size_mb * 8000.0 * 0.97 / duration_sec.max(1.0);
-    let audio = if has_audio { f64::from(SIZED_AUDIO_KBPS) } else { 0.0 };
+    let audio = if has_audio {
+        f64::from(SIZED_AUDIO_KBPS)
+    } else {
+        0.0
+    };
     ((total - audio).max(0.0) as u32).max(MIN_VIDEO_KBPS)
 }
 
@@ -150,7 +154,11 @@ pub fn decide(probe: &FileProbe, t: &ConvertTarget) -> Result<Decision, &'static
     let mute = t.audio_codec == "none" && !audio_only(container);
     let sized = t.size_mb.filter(|mb| *mb > 0.0 && !audio_only(container));
     let video_kbps = match sized {
-        Some(mb) => Some(sized_video_kbps(mb, probe.duration_sec, probe.audio.is_some() && !mute)),
+        Some(mb) => Some(sized_video_kbps(
+            mb,
+            probe.duration_sec,
+            probe.audio.is_some() && !mute,
+        )),
         None => t.video_kbps.filter(|k| *k > 0 && !audio_only(container)),
     };
     let mut scale_height = None;
@@ -162,8 +170,8 @@ pub fn decide(probe: &FileProbe, t: &ConvertTarget) -> Result<Decision, &'static
         let v = probe.video.as_ref().ok_or("no-video")?;
         scale_height = t.height.filter(|h| v.height > *h);
         fps = t.fps.filter(|f| v.fps > 0.0 && (v.fps - f).abs() > 0.5);
-        let keeps_codec = t.video_codec == "auto"
-            || video_encoder(container, &t.video_codec) == v.codec;
+        let keeps_codec =
+            t.video_codec == "auto" || video_encoder(container, &t.video_codec) == v.codec;
         if keeps_codec
             && plays_video(container, &v.codec)
             && scale_height.is_none()
@@ -187,8 +195,8 @@ pub fn decide(probe: &FileProbe, t: &ConvertTarget) -> Result<Decision, &'static
         None => Op::Drop,
         Some(_) if mute => Op::Drop,
         Some(a) => {
-            let keeps_codec = t.audio_codec == "auto"
-                || audio_encoder(container, &t.audio_codec) == a.codec;
+            let keeps_codec =
+                t.audio_codec == "auto" || audio_encoder(container, &t.audio_codec) == a.codec;
             // A target size only adds up if the audio share is known. And for an
             // audio-only output the quality level IS the request: copying an MP3
             // into an MP3 at "low" would hand back the same file.
@@ -263,20 +271,36 @@ pub fn video_encode_args(
     let mut args: Vec<String>;
     #[cfg(target_os = "macos")]
     {
-        let encoder = if codec == "hevc" { "hevc_videotoolbox" } else { "h264_videotoolbox" };
+        let encoder = if codec == "hevc" {
+            "hevc_videotoolbox"
+        } else {
+            "h264_videotoolbox"
+        };
         let _ = crf;
-        let rate = format!("{}k", kbps.unwrap_or_else(|| video_kbps(codec, height, quality)));
+        let rate = format!(
+            "{}k",
+            kbps.unwrap_or_else(|| video_kbps(codec, height, quality))
+        );
         args = strs(&["-c:v", encoder, "-b:v", &rate, "-allow_sw", "1"]);
     }
     #[cfg(not(target_os = "macos"))]
     {
         let _ = height;
-        let (encoder, crf) = if codec == "hevc" { ("libx265", crf + 4) } else { ("libx264", crf) };
+        let (encoder, crf) = if codec == "hevc" {
+            ("libx265", crf + 4)
+        } else {
+            ("libx264", crf)
+        };
         args = strs(&["-c:v", encoder, "-preset", "fast"]);
         match kbps {
             // maxrate/bufsize keep a single pass honest about the size it lands on.
             Some(k) => args.extend(strs(&[
-                "-b:v", &format!("{k}k"), "-maxrate", &format!("{k}k"), "-bufsize", &format!("{}k", k * 2),
+                "-b:v",
+                &format!("{k}k"),
+                "-maxrate",
+                &format!("{k}k"),
+                "-bufsize",
+                &format!("{}k", k * 2),
             ])),
             None => args.extend(strs(&["-crf", &crf.to_string()])),
         }
@@ -570,7 +594,8 @@ pub async fn run_convert(
     if files.is_empty() {
         return Err("No files to convert".to_string());
     }
-    let ffmpeg = resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
+    let ffmpeg =
+        resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
     let ffprobe =
         resolve(&app, Tool::Ffprobe).ok_or_else(|| "ffprobe is not available".to_string())?;
     if let Some(dir) = &out_dir {
@@ -648,7 +673,10 @@ mod tests {
     #[test]
     fn unplayable_audio_is_swapped_without_touching_video() {
         let d = decide(&probe("h264", Some("opus"), 1080), &target("mp4")).unwrap();
-        assert_eq!((d.video.clone(), d.audio.clone()), (Op::Copy, Op::Encode("aac")));
+        assert_eq!(
+            (d.video.clone(), d.audio.clone()),
+            (Op::Copy, Op::Encode("aac"))
+        );
         assert_eq!(d.verdict(), "audio");
     }
 
@@ -665,7 +693,10 @@ mod tests {
         let mut t = target("mp4");
         t.height = Some(720);
         let d = decide(&probe("h264", Some("aac"), 1080), &t).unwrap();
-        assert_eq!((d.video.clone(), d.scale_height), (Op::Encode("h264"), Some(720)));
+        assert_eq!(
+            (d.video.clone(), d.scale_height),
+            (Op::Encode("h264"), Some(720))
+        );
         assert_eq!(d.audio, Op::Copy);
 
         // Never upscale: a 480p source under a 720p cap stays a copy.
@@ -674,7 +705,10 @@ mod tests {
 
         let mut t = target("mp4");
         t.quality = Some("medium".into());
-        assert_eq!(decide(&probe("h264", None, 480), &t).unwrap().video, Op::Encode("h264"));
+        assert_eq!(
+            decide(&probe("h264", None, 480), &t).unwrap().video,
+            Op::Encode("h264")
+        );
     }
 
     #[test]
@@ -682,7 +716,10 @@ mod tests {
         let mut t = target("mp4");
         t.video_kbps = Some(4000);
         let d = decide(&probe("h264", Some("aac"), 1080), &t).unwrap();
-        assert_eq!((d.video.clone(), d.video_kbps, d.audio.clone()), (Op::Encode("h264"), Some(4000), Op::Copy));
+        assert_eq!(
+            (d.video.clone(), d.video_kbps, d.audio.clone()),
+            (Op::Encode("h264"), Some(4000), Op::Copy)
+        );
         let args = video_encode_args("h264", 1080, d.quality, d.video_kbps).join(" ");
         assert!(args.contains("-b:v 4000k") && !args.contains("-crf"));
 
@@ -691,24 +728,41 @@ mod tests {
         t.size_mb = Some(25.0);
         let d = decide(&probe("h264", Some("aac"), 1080), &t).unwrap();
         assert_eq!(d.audio, Op::Encode("aac"));
-        assert_eq!(d.video_kbps, Some((25.0 * 8000.0 * 0.97 / 10.0) as u32 - SIZED_AUDIO_KBPS));
+        assert_eq!(
+            d.video_kbps,
+            Some((25.0 * 8000.0 * 0.97 / 10.0) as u32 - SIZED_AUDIO_KBPS)
+        );
 
         // An impossible size still produces a playable file.
         t.size_mb = Some(0.01);
-        assert_eq!(decide(&probe("h264", None, 1080), &t).unwrap().video_kbps, Some(MIN_VIDEO_KBPS));
+        assert_eq!(
+            decide(&probe("h264", None, 1080), &t).unwrap().video_kbps,
+            Some(MIN_VIDEO_KBPS)
+        );
 
         // Neither applies to an audio-only target.
         let mut t = target("mp3");
         t.size_mb = Some(5.0);
-        assert_eq!(decide(&probe("h264", Some("aac"), 1080), &t).unwrap().video_kbps, None);
+        assert_eq!(
+            decide(&probe("h264", Some("aac"), 1080), &t)
+                .unwrap()
+                .video_kbps,
+            None
+        );
     }
 
     #[test]
     fn explicit_codec_is_honored_and_kept_when_it_already_matches() {
         let mut t = target("mp4");
         t.video_codec = "hevc".into();
-        assert_eq!(decide(&probe("h264", None, 1080), &t).unwrap().video, Op::Encode("hevc"));
-        assert_eq!(decide(&probe("hevc", None, 1080), &t).unwrap().video, Op::Copy);
+        assert_eq!(
+            decide(&probe("h264", None, 1080), &t).unwrap().video,
+            Op::Encode("hevc")
+        );
+        assert_eq!(
+            decide(&probe("hevc", None, 1080), &t).unwrap().video,
+            Op::Copy
+        );
     }
 
     #[test]
@@ -717,7 +771,10 @@ mod tests {
         assert_eq!((d.video, d.audio), (Op::Drop, Op::Encode("mp3")));
         let d = decide(&probe("h264", Some("aac"), 1080), &target("m4a")).unwrap();
         assert_eq!(d.verdict(), "copy");
-        assert_eq!(decide(&probe("h264", None, 1080), &target("mp3")).unwrap_err(), "no-audio");
+        assert_eq!(
+            decide(&probe("h264", None, 1080), &target("mp3")).unwrap_err(),
+            "no-audio"
+        );
 
         let mut audio_file = probe("h264", Some("mp3"), 1080);
         audio_file.video = None;
@@ -730,13 +787,19 @@ mod tests {
         t.audio_codec = "none".into();
         let p = probe("h264", Some("aac"), 1080);
         let d = decide(&p, &t).unwrap();
-        assert_eq!((d.video.clone(), d.audio.clone(), d.verdict()), (Op::Copy, Op::Drop, "copy"));
+        assert_eq!(
+            (d.video.clone(), d.audio.clone(), d.verdict()),
+            (Op::Copy, Op::Drop, "copy")
+        );
         let args = convert_args("in.mp4", &p, &d, "mp4", Path::new("out.mp4")).join(" ");
         assert!(args.contains("-an") && !args.contains("-map 0:1"));
 
         // The whole target size goes to the video once there's no audio to pay for.
         t.size_mb = Some(25.0);
-        assert_eq!(decide(&p, &t).unwrap().video_kbps, Some((25.0 * 8000.0 * 0.97 / 10.0) as u32));
+        assert_eq!(
+            decide(&p, &t).unwrap().video_kbps,
+            Some((25.0 * 8000.0 * 0.97 / 10.0) as u32)
+        );
 
         // A quality level on an audio-only output is a real re-encode, not a copy.
         let mut mp3 = probe("h264", Some("mp3"), 1080);
@@ -768,11 +831,20 @@ mod tests {
             managed,
             ..Default::default()
         };
-        let auto = OutDirs { chosen: None, fallback: Some("/home/Downloads".into()) };
-        assert_eq!(auto.for_entry(&file(true)), PathBuf::from("/home/Downloads"));
+        let auto = OutDirs {
+            chosen: None,
+            fallback: Some("/home/Downloads".into()),
+        };
+        assert_eq!(
+            auto.for_entry(&file(true)),
+            PathBuf::from("/home/Downloads")
+        );
         assert_eq!(auto.for_entry(&file(false)), PathBuf::from("/app/media"));
 
-        let chosen = OutDirs { chosen: Some("/out".into()), ..auto };
+        let chosen = OutDirs {
+            chosen: Some("/out".into()),
+            ..auto
+        };
         assert_eq!(chosen.for_entry(&file(true)), PathBuf::from("/out"));
     }
 

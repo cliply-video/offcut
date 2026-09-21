@@ -13,7 +13,10 @@ use crate::probe::{probe, FileEntry, SourceFile};
 async fn probe_all(ffprobe: &Path, paths: &[String]) -> Vec<FileEntry> {
     let files: Vec<SourceFile> = paths
         .iter()
-        .map(|p| SourceFile { path: p.clone(), title: None })
+        .map(|p| SourceFile {
+            path: p.clone(),
+            title: None,
+        })
         .collect();
     crate::probe::probe_all(ffprobe, &files, None).await
 }
@@ -100,24 +103,41 @@ fn cuts_of_one_source_join_as_a_copy() {
 
         let out = b.path("joined.mp4");
         let cancel = AtomicBool::new(false);
-        let run = join_files(&b.ffmpeg, &plan, Path::new(&out), "t", &cancel, &mut |_, _, _| {})
-            .await
-            .unwrap();
+        let run = join_files(
+            &b.ffmpeg,
+            &plan,
+            Path::new(&out),
+            "t",
+            &cancel,
+            &mut |_, _, _| {},
+        )
+        .await
+        .unwrap();
         assert!(matches!(run, Run::Done));
         let joined = probe(&b.ffprobe, &out).await.unwrap();
-        assert!((joined.duration_sec - 4.0).abs() < 0.5, "{}", joined.duration_sec);
+        assert!(
+            (joined.duration_sec - 4.0).abs() < 0.5,
+            "{}",
+            joined.duration_sec
+        );
         assert!(!b.dir.join(".offcut-join-t").exists());
     });
 }
 
 #[test]
 fn mismatched_parts_are_normalized_then_joined() {
-    let Some(b) = Bench::new("reencode") else { return };
+    let Some(b) = Bench::new("reencode") else {
+        return;
+    };
     let big = b.clip("big.mp4", "1280x720", "30", "2", true);
     let small_silent = b.clip("small.mp4", "640x480", "25", "2", false);
 
     block_on(async {
-        let plan = plan(probe_all(&b.ffprobe, &[small_silent, big]).await, false, None);
+        let plan = plan(
+            probe_all(&b.ffprobe, &[small_silent, big]).await,
+            false,
+            None,
+        );
         assert_eq!(plan.mode, "reencode");
         assert!(plan.mismatches.contains(&"box") && plan.mismatches.contains(&"audio-presence"));
         assert_eq!((plan.width, plan.height), (1280, 720));
@@ -125,10 +145,17 @@ fn mismatched_parts_are_normalized_then_joined() {
         let out = b.path("joined.mp4");
         let cancel = AtomicBool::new(false);
         let mut last = 0.0;
-        let run = join_files(&b.ffmpeg, &plan, Path::new(&out), "t", &cancel, &mut |r, _, _| {
-            assert!(r >= last - 1e-9, "progress went backwards: {last} → {r}");
-            last = r;
-        })
+        let run = join_files(
+            &b.ffmpeg,
+            &plan,
+            Path::new(&out),
+            "t",
+            &cancel,
+            &mut |r, _, _| {
+                assert!(r >= last - 1e-9, "progress went backwards: {last} → {r}");
+                last = r;
+            },
+        )
         .await
         .unwrap();
         assert!(matches!(run, Run::Done));
@@ -139,13 +166,19 @@ fn mismatched_parts_are_normalized_then_joined() {
         assert_eq!((v.width, v.height, v.codec.as_str()), (1280, 720, "h264"));
         assert!((v.fps - 25.0).abs() < 0.5);
         assert!(joined.audio.is_some());
-        assert!((joined.duration_sec - 4.0).abs() < 0.5, "{}", joined.duration_sec);
+        assert!(
+            (joined.duration_sec - 4.0).abs() < 0.5,
+            "{}",
+            joined.duration_sec
+        );
     });
 }
 
 #[test]
 fn a_cancelled_join_leaves_nothing_behind() {
-    let Some(b) = Bench::new("cancel") else { return };
+    let Some(b) = Bench::new("cancel") else {
+        return;
+    };
     let a = b.clip("a.mp4", "320x240", "30", "1", false);
     let c = b.clip("c.mp4", "640x480", "30", "1", false);
 
@@ -153,9 +186,16 @@ fn a_cancelled_join_leaves_nothing_behind() {
         let plan = plan(probe_all(&b.ffprobe, &[a, c]).await, false, None);
         let out = b.path("joined.mp4");
         let cancel = AtomicBool::new(true);
-        let run = join_files(&b.ffmpeg, &plan, Path::new(&out), "t", &cancel, &mut |_, _, _| {})
-            .await
-            .unwrap();
+        let run = join_files(
+            &b.ffmpeg,
+            &plan,
+            Path::new(&out),
+            "t",
+            &cancel,
+            &mut |_, _, _| {},
+        )
+        .await
+        .unwrap();
         assert!(matches!(run, Run::Cancelled));
         assert!(!Path::new(&out).exists() && !b.dir.join(".offcut-join-t").exists());
     });
@@ -163,7 +203,9 @@ fn a_cancelled_join_leaves_nothing_behind() {
 
 #[test]
 fn cancelling_mid_encode_kills_ffmpeg_and_cleans_up() {
-    let Some(b) = Bench::new("midcancel") else { return };
+    let Some(b) = Bench::new("midcancel") else {
+        return;
+    };
     let long = b.clip("long.mp4", "1920x1080", "30", "20", false);
     let other = b.clip("other.mp4", "640x480", "30", "1", false);
 
@@ -177,18 +219,30 @@ fn cancelling_mid_encode_kills_ffmpeg_and_cleans_up() {
             flag.store(true, std::sync::atomic::Ordering::Relaxed);
         });
         let started = std::time::Instant::now();
-        let run = join_files(&b.ffmpeg, &plan, Path::new(&out), "t", &cancel, &mut |_, _, _| {})
-            .await
-            .unwrap();
+        let run = join_files(
+            &b.ffmpeg,
+            &plan,
+            Path::new(&out),
+            "t",
+            &cancel,
+            &mut |_, _, _| {},
+        )
+        .await
+        .unwrap();
         assert!(matches!(run, Run::Cancelled));
-        assert!(started.elapsed().as_secs() < 5, "cancel didn't interrupt the encode");
+        assert!(
+            started.elapsed().as_secs() < 5,
+            "cancel didn't interrupt the encode"
+        );
         assert!(!Path::new(&out).exists() && !b.dir.join(".offcut-join-t").exists());
     });
 }
 
 #[test]
 fn converts_by_remux_audio_extract_and_reencode() {
-    let Some(b) = Bench::new("convert") else { return };
+    let Some(b) = Bench::new("convert") else {
+        return;
+    };
     let src = b.clip("match.mp4", "640x360", "30", "2", true);
     let not_media = b.path("notes.mp4");
     std::fs::write(&not_media, "not a video").unwrap();
@@ -208,7 +262,10 @@ fn converts_by_remux_audio_extract_and_reencode() {
         let entries = probe_all(&b.ffprobe, &[src.clone(), not_media]).await;
         let cancel = AtomicBool::new(false);
         let run = async |t: ConvertTarget, dir: Option<&str>| {
-            let dirs = OutDirs { chosen: dir.map(PathBuf::from), fallback: None };
+            let dirs = OutDirs {
+                chosen: dir.map(PathBuf::from),
+                fallback: None,
+            };
             serde_json::to_value(
                 convert_files(&b.ffmpeg, &entries, &t, &dirs, &cancel, &mut |_, _, _| {}).await,
             )
@@ -218,19 +275,26 @@ fn converts_by_remux_audio_extract_and_reencode() {
         // Same folder as the source, same extension: must not clobber it.
         let s = run(target("mp4", None), None).await;
         assert_eq!(s["outputs"][0]["verdict"], "copy");
-        assert!(s["outputs"][0]["out"].as_str().unwrap().ends_with("match (1).mp4"));
+        assert!(s["outputs"][0]["out"]
+            .as_str()
+            .unwrap()
+            .ends_with("match (1).mp4"));
         assert_eq!(s["failed"][0]["error"], "unreadable");
 
         let out_dir = b.path("out");
         std::fs::create_dir_all(&out_dir).unwrap();
         let s = run(target("mp3", None), Some(&out_dir)).await;
-        let mp3 = probe(&b.ffprobe, s["outputs"][0]["out"].as_str().unwrap()).await.unwrap();
+        let mp3 = probe(&b.ffprobe, s["outputs"][0]["out"].as_str().unwrap())
+            .await
+            .unwrap();
         assert!(mp3.video.is_none());
         assert_eq!(mp3.audio.unwrap().codec, "mp3");
 
         let s = run(target("mkv", Some(240)), Some(&out_dir)).await;
         assert_eq!(s["outputs"][0]["verdict"], "reencode");
-        let mkv = probe(&b.ffprobe, s["outputs"][0]["out"].as_str().unwrap()).await.unwrap();
+        let mkv = probe(&b.ffprobe, s["outputs"][0]["out"].as_str().unwrap())
+            .await
+            .unwrap();
         assert_eq!(mkv.video.unwrap().height, 240);
         assert_eq!(mkv.audio.unwrap().codec, "aac");
 
@@ -239,7 +303,9 @@ fn converts_by_remux_audio_extract_and_reencode() {
         muted.audio_codec = "none".into();
         let s = run(muted, Some(&out_dir)).await;
         assert_eq!(s["outputs"][0]["verdict"], "copy");
-        let mov = probe(&b.ffprobe, s["outputs"][0]["out"].as_str().unwrap()).await.unwrap();
+        let mov = probe(&b.ffprobe, s["outputs"][0]["out"].as_str().unwrap())
+            .await
+            .unwrap();
         assert!(mov.video.is_some() && mov.audio.is_none());
 
         // A target size re-encodes and lands near it (2 s clip → ~0.5 MB).
@@ -247,18 +313,39 @@ fn converts_by_remux_audio_extract_and_reencode() {
         sized.size_mb = Some(0.5);
         let s = run(sized, Some(&out_dir)).await;
         assert_eq!(s["outputs"][0]["verdict"], "reencode");
-        let bytes = std::fs::metadata(s["outputs"][0]["out"].as_str().unwrap()).unwrap().len();
-        assert!((150_000..900_000).contains(&bytes), "sized output is {bytes} bytes");
+        let bytes = std::fs::metadata(s["outputs"][0]["out"].as_str().unwrap())
+            .unwrap()
+            .len();
+        assert!(
+            (150_000..900_000).contains(&bytes),
+            "sized output is {bytes} bytes"
+        );
 
         // A library download (a file under the managed root): named by its
         // title, and written to the fallback dir instead of next to itself.
-        let files = [SourceFile { path: src.clone(), title: Some("Final: Apertura".into()) }];
+        let files = [SourceFile {
+            path: src.clone(),
+            title: Some("Final: Apertura".into()),
+        }];
         let library = crate::probe::probe_all(&b.ffprobe, &files, Some(&b.dir)).await;
-        assert_eq!((library[0].name.as_str(), library[0].managed), ("Final: Apertura", true));
-        let dirs = OutDirs { chosen: None, fallback: Some(PathBuf::from(&out_dir)) };
+        assert_eq!(
+            (library[0].name.as_str(), library[0].managed),
+            ("Final: Apertura", true)
+        );
+        let dirs = OutDirs {
+            chosen: None,
+            fallback: Some(PathBuf::from(&out_dir)),
+        };
         let s = serde_json::to_value(
-            convert_files(&b.ffmpeg, &library, &target("mp4", None), &dirs, &cancel, &mut |_, _, _| {})
-                .await,
+            convert_files(
+                &b.ffmpeg,
+                &library,
+                &target("mp4", None),
+                &dirs,
+                &cancel,
+                &mut |_, _, _| {},
+            )
+            .await,
         )
         .unwrap();
         let out = Path::new(s["outputs"][0]["out"].as_str().unwrap());

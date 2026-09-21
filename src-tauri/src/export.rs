@@ -65,7 +65,11 @@ async fn wait_cancel(cancel: &AtomicBool) {
 // Runs one cut, killing the ffmpeg child if the export is cancelled. output()
 // buffers stdout/stderr (no pipe deadlock); kill_on_drop means dropping the
 // future on cancel terminates the child.
-async fn run_cut(ffmpeg: &Path, args: &[String], cancel: &AtomicBool) -> Result<CutOutcome, String> {
+async fn run_cut(
+    ffmpeg: &Path,
+    args: &[String],
+    cancel: &AtomicBool,
+) -> Result<CutOutcome, String> {
     if cancel.load(Ordering::Relaxed) {
         return Ok(CutOutcome::Cancelled);
     }
@@ -310,7 +314,8 @@ pub async fn export_clips(
     if !Path::new(&options.source_path).is_file() {
         return Err("Source video not found — download it first".to_string());
     }
-    let ffmpeg = resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
+    let ffmpeg =
+        resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
 
     // The mascot mark burned into each clip's top-right corner. Bundled resource;
     // if it can't be resolved we skip the overlay rather than fail the export.
@@ -430,8 +435,10 @@ pub async fn export_clips(
             Ok::<CutOutcome, String>(outcome)
         }
     });
-    let results: Vec<Result<CutOutcome, String>> =
-        stream::iter(cuts).buffer_unordered(CUT_CONCURRENCY).collect().await;
+    let results: Vec<Result<CutOutcome, String>> = stream::iter(cuts)
+        .buffer_unordered(CUT_CONCURRENCY)
+        .collect()
+        .await;
     let mut cancelled = cancel.load(Ordering::Relaxed);
     for r in results {
         if matches!(r?, CutOutcome::Cancelled) {
@@ -478,7 +485,10 @@ pub async fn export_clips(
                 &ffmpeg,
                 &all_files,
                 &base.join(".concat-all.txt"),
-                &base.join(format!("{} - all clips.mp4", sanitize(&options.video_title))),
+                &base.join(format!(
+                    "{} - all clips.mp4",
+                    sanitize(&options.video_title)
+                )),
             )
             .await?;
             reels = 1;
@@ -505,8 +515,16 @@ mod tests {
 
     fn args(watermark: bool, reencode: bool, mute: bool) -> String {
         let logo = Path::new("logo.png");
-        cut_args("in.mp4", watermark.then_some(logo), 10.0, 15.0, reencode, mute, Path::new("out.mp4"))
-            .join(" ")
+        cut_args(
+            "in.mp4",
+            watermark.then_some(logo),
+            10.0,
+            15.0,
+            reencode,
+            mute,
+            Path::new("out.mp4"),
+        )
+        .join(" ")
     }
 
     #[test]

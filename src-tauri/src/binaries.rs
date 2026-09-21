@@ -431,7 +431,12 @@ mod tests {
     fn pinned_sources_have_valid_sha256() {
         for tool in Tool::ALL {
             if let Some(s) = source(tool) {
-                assert_eq!(s.sha256.len(), 64, "{}: sha must be 64 hex chars", tool.key());
+                assert_eq!(
+                    s.sha256.len(),
+                    64,
+                    "{}: sha must be 64 hex chars",
+                    tool.key()
+                );
                 assert!(
                     s.sha256.bytes().all(|b| b.is_ascii_hexdigit()),
                     "{}: sha must be hex",

@@ -58,7 +58,11 @@ pub fn plan(mut files: Vec<FileEntry>, force_reencode: bool, fps_choice: Option<
         .collect();
 
     if let Some((lead_file, lead, lead_v)) = usable.first() {
-        fps = if lead_v.fps > 0.0 { lead_v.fps.min(60.0) } else { 30.0 };
+        fps = if lead_v.fps > 0.0 {
+            lead_v.fps.min(60.0)
+        } else {
+            30.0
+        };
         ext = match file_ext(&lead_file.path).as_str() {
             e @ ("mp4" | "mov" | "mkv" | "webm") => e.to_string(),
             "m4v" => "mp4".to_string(),
@@ -78,7 +82,10 @@ pub fn plan(mut files: Vec<FileEntry>, force_reencode: bool, fps_choice: Option<
                 }
             };
             differs("video-codec", v.codec != lead_v.codec);
-            differs("decoder-config", v.codec == lead_v.codec && v.config != lead_v.config);
+            differs(
+                "decoder-config",
+                v.codec == lead_v.codec && v.config != lead_v.config,
+            );
             differs("box", (v.width, v.height) != (lead_v.width, lead_v.height));
             differs("rotation", v.rotation != lead_v.rotation);
             differs("pixel-format", v.pix_fmt != lead_v.pix_fmt);
@@ -195,7 +202,9 @@ fn normalize_args(file: &FileEntry, plan: &JoinPlan, any_audio: bool, out: &Path
     ]);
     args.extend(video_encode_args("h264", h, Quality::High, None));
     if any_audio {
-        args.extend(strs(&["-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2"]));
+        args.extend(strs(&[
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
+        ]));
     }
     if silent {
         // anullsrc never ends on its own.
@@ -234,7 +243,11 @@ pub async fn join_files(
     }
     // Identity, not spelling: a symlink or a case variant still names the input,
     // and ffmpeg would truncate it before reading a frame.
-    if plan.files.iter().any(|f| same_file(Path::new(&f.path), out)) {
+    if plan
+        .files
+        .iter()
+        .any(|f| same_file(Path::new(&f.path), out))
+    {
         return Err("The output would overwrite one of the source files".to_string());
     }
 
@@ -279,7 +292,9 @@ pub async fn join_files(
     std::fs::write(&list, concat_list(&parts)).map_err(|e| e.to_string())?;
     let lead = plan.files[0].probe.as_ref();
     let hevc = plan.mode == "copy"
-        && lead.and_then(|p| p.video.as_ref()).is_some_and(|v| v.codec == "hevc");
+        && lead
+            .and_then(|p| p.video.as_ref())
+            .is_some_and(|v| v.codec == "hevc");
     // Copy mode reads the sources, so it follows the lead's probed layout (the
     // plan only allows a copy when every file shares it). Normalized parts are
     // always video 0, audio 1.
@@ -295,7 +310,11 @@ pub async fn join_files(
             .any(|f| f.probe.as_ref().is_some_and(|p| p.audio.is_some()));
         (0, any_audio.then_some(1))
     };
-    let base = if plan.mode == "copy" { 0.0 } else { ENCODE_SHARE };
+    let base = if plan.mode == "copy" {
+        0.0
+    } else {
+        ENCODE_SHARE
+    };
     let run = run_ffmpeg(
         ffmpeg,
         &concat_args(&list, hevc, streams, out),
@@ -342,7 +361,8 @@ pub async fn run_join(
     fps: Option<f64>,
     out_path: String,
 ) -> Result<JoinOutcome, String> {
-    let ffmpeg = resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
+    let ffmpeg =
+        resolve(&app, Tool::Ffmpeg).ok_or_else(|| "ffmpeg is not available".to_string())?;
     let ffprobe =
         resolve(&app, Tool::Ffprobe).ok_or_else(|| "ffprobe is not available".to_string())?;
 
@@ -420,7 +440,10 @@ mod tests {
             false,
             None,
         );
-        assert_eq!((p.mode, p.ext.as_str(), p.duration_sec), ("copy", "mov", 10.0));
+        assert_eq!(
+            (p.mode, p.ext.as_str(), p.duration_sec),
+            ("copy", "mov", 10.0)
+        );
         assert!(p.mismatches.is_empty());
     }
 
@@ -456,7 +479,11 @@ mod tests {
     fn differing_rates_only_warn() {
         let mut slow = entry("b.mp4", "X", (1920, 1080), Some("aac"));
         slow.probe.as_mut().unwrap().video.as_mut().unwrap().fps = 25.0;
-        let p = plan(vec![entry("a.mp4", "X", (1920, 1080), Some("aac")), slow], false, None);
+        let p = plan(
+            vec![entry("a.mp4", "X", (1920, 1080), Some("aac")), slow],
+            false,
+            None,
+        );
         assert_eq!((p.mode, p.variable_fps), ("copy", true));
     }
 
@@ -493,16 +520,20 @@ mod tests {
         ];
         let p = plan(files, false, None);
         let args = normalize_args(&p.files[1], &p, true, Path::new("1.mp4")).join(" ");
-        assert!(args.contains("anullsrc") && args.contains("-map 1:a:0") && args.contains("-shortest"));
+        assert!(
+            args.contains("anullsrc") && args.contains("-map 1:a:0") && args.contains("-shortest")
+        );
         let args = normalize_args(&p.files[0], &p, true, Path::new("0.mp4")).join(" ");
         assert!(args.contains("-map 0:1") && !args.contains("anullsrc"));
     }
 
     #[test]
     fn copy_mode_maps_the_probed_streams_not_the_first_video() {
-        let args = concat_args(Path::new("l.txt"), false, (1, Some(2)), Path::new("o.mp4")).join(" ");
+        let args =
+            concat_args(Path::new("l.txt"), false, (1, Some(2)), Path::new("o.mp4")).join(" ");
         assert!(args.contains("-map 0:1 -map 0:2 -c copy"));
-        let silent = concat_args(Path::new("l.txt"), false, (0, None), Path::new("o.mkv")).join(" ");
+        let silent =
+            concat_args(Path::new("l.txt"), false, (0, None), Path::new("o.mkv")).join(" ");
         assert!(silent.contains("-map 0:0 -c copy") && !silent.contains("movflags"));
     }
 

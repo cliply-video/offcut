@@ -169,7 +169,9 @@ async fn blocking<F>(work: F) -> Result<(), String>
 where
     F: FnOnce() -> Result<(), String> + Send + 'static,
 {
-    tauri::async_runtime::spawn_blocking(work).await.map_err(es)?
+    tauri::async_runtime::spawn_blocking(work)
+        .await
+        .map_err(es)?
 }
 
 /// True when both paths name one file on disk — also through a symlink, a hard
