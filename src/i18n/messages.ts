@@ -4,8 +4,6 @@ export type Locale = "en" | "es";
 export const messages: Record<Locale, Record<string, string>> = {
   en: {
     "nav.github": "GitHub",
-    "nav.getApp": "Get the full app ↗",
-    "splash.label": "Booting clip engine…",
     "status.local": "Local · Offline",
     "footer.tagline": "Open-source video tools · nothing leaves your machine",
     "footer.productOf": "A product of",
@@ -292,8 +290,6 @@ export const messages: Record<Locale, Record<string, string>> = {
   },
   es: {
     "nav.github": "GitHub",
-    "nav.getApp": "Ver la app completa ↗",
-    "splash.label": "Iniciando motor de clips…",
     "status.local": "Local · Offline",
     "footer.tagline": "Herramientas de video · nada sale de tu equipo",
     "footer.productOf": "Un producto de",
