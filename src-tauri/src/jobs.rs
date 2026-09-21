@@ -13,6 +13,10 @@ use tauri::{AppHandle, Emitter, State};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 use tokio::process::Command;
 
+/// How long the app waits at exit for cancelled jobs to kill their ffmpeg and
+/// sweep their scratch dirs.
+pub const EXIT_GRACE: Duration = Duration::from_millis(600);
+
 #[derive(Default)]
 pub struct Jobs {
     cancel: Mutex<HashMap<String, Arc<AtomicBool>>>,

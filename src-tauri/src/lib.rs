@@ -85,7 +85,7 @@ pub fn run() {
                 let running = app.state::<jobs::Jobs>().cancel_all()
                     + app.state::<export::ExportState>().cancel_all();
                 if running > 0 {
-                    std::thread::sleep(std::time::Duration::from_millis(600));
+                    std::thread::sleep(jobs::EXIT_GRACE);
                 }
             }
         });

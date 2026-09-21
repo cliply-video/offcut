@@ -6,7 +6,7 @@ use std::process::Command;
 use std::sync::atomic::AtomicBool;
 
 use crate::convert::{convert_files, ConvertTarget, OutDirs};
-use crate::jobs::Run;
+use crate::jobs::{Jobs, Run, EXIT_GRACE};
 use crate::join::{join_files, plan};
 use crate::probe::{probe, FileEntry, SourceFile};
 
@@ -235,6 +235,51 @@ fn cancelling_mid_encode_kills_ffmpeg_and_cleans_up() {
             "cancel didn't interrupt the encode"
         );
         assert!(!Path::new(&out).exists() && !b.dir.join(".offcut-join-t").exists());
+    });
+}
+
+// What the app's exit hook relies on: flag every job, and within the grace
+// period ffmpeg is dead and the scratch dir is gone.
+#[test]
+fn cancel_all_winds_a_running_job_down_within_the_exit_grace() {
+    let Some(b) = Bench::new("exit") else { return };
+    let long = b.clip("long.mp4", "1920x1080", "30", "20", false);
+    let other = b.clip("other.mp4", "640x480", "30", "1", false);
+
+    block_on(async {
+        let plan = plan(probe_all(&b.ffprobe, &[long, other]).await, false, None);
+        let out = b.path("joined.mp4");
+        let jobs = std::sync::Arc::new(Jobs::default());
+        let guard = jobs.register("exit");
+
+        let at_exit = jobs.clone();
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(400));
+            let flagged = std::time::Instant::now();
+            tx.send((at_exit.cancel_all(), flagged)).unwrap();
+        });
+
+        let run = join_files(
+            &b.ffmpeg,
+            &plan,
+            Path::new(&out),
+            "exit",
+            &guard.cancel,
+            &mut |_, _, _| {},
+        )
+        .await
+        .unwrap();
+        let (running, flagged) = rx.recv().unwrap();
+
+        assert_eq!(running, 1);
+        assert!(matches!(run, Run::Cancelled));
+        assert!(
+            flagged.elapsed() < EXIT_GRACE,
+            "wind-down took {:?}, longer than the exit grace",
+            flagged.elapsed()
+        );
+        assert!(!Path::new(&out).exists() && !b.dir.join(".offcut-join-exit").exists());
     });
 }
 
