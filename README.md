@@ -148,7 +148,8 @@ npm run app:build  # production bundle
 
 Built with Tauri v2, React 19 + Vite, Rust, and SQLite.
 
-CI (`.github/workflows/ci.yml`) runs typecheck + build and `cargo check`/`test`
+CI (`.github/workflows/ci.yml`) runs typecheck + build, and `cargo fmt --check`,
+`clippy` and `cargo test` — the join/convert tests run against a real ffmpeg —
 on every push. Pushing a `vX.Y.Z` tag triggers `release.yml`, which builds
 macOS (universal: arm64 + x64), Windows and Linux and opens a draft GitHub
 release with signed updater artifacts. See [`docs/signing.md`](docs/signing.md)
