@@ -4,6 +4,7 @@ import { GITHUB_URL, openExternal } from "../lib/links";
 import { CliplySign, Logo } from "./logo";
 import { FieldTexture, StatusPill } from "./osd";
 import { Stepper } from "./stepper";
+import { type ToolName, ToolRail } from "./tool-rail";
 
 const VERSION = __APP_VERSION__;
 
@@ -17,11 +18,18 @@ function GitHubIcon() {
 
 export function Shell({
   children,
+  tool,
+  busy,
+  onTool,
   step,
   reached,
   onNavigate,
 }: {
   children: ReactNode;
+  // Undefined until the runtime tools are set up: no rail on the setup screen.
+  tool?: ToolName;
+  busy: Partial<Record<ToolName, boolean>>;
+  onTool: (tool: ToolName) => void;
   step?: 1 | 2 | 3;
   reached?: 1 | 2 | 3;
   onNavigate?: (n: 1 | 2 | 3) => void;
@@ -61,6 +69,8 @@ export function Shell({
           </button>
         </nav>
       </header>
+
+      {tool && <ToolRail current={tool} busy={busy} onSelect={onTool} />}
 
       {step && (
         <Stepper

@@ -8,16 +8,8 @@ import { copyFile, fetchXmlUrl, readXmlFile } from "../lib/api";
 import { friendlyError } from "../lib/errors";
 import { getVideo, saveParsed } from "../lib/db";
 import { cliplyUrl, openExternal } from "../lib/links";
+import { safeFileName } from "../lib/media";
 import { parseSportXml } from "../lib/xml";
-
-// Mirrors export.rs `sanitize` so saved videos and exported folders share names.
-function fileName(title: string): string {
-  const cleaned = title
-    .replace(/[\\/:*?"<>|]/g, "-")
-    .trim()
-    .replace(/^\.+|\.+$/g, "");
-  return Array.from(cleaned).slice(0, 80).join("") || "video";
-}
 
 export function ImportXml({
   videoId,
@@ -96,7 +88,7 @@ export function ImportXml({
     if (!src) return;
     setError(null);
     const dest = await save({
-      defaultPath: `${fileName(title)}.mp4`,
+      defaultPath: `${safeFileName(title)}.mp4`,
       filters: [{ name: "Video", extensions: ["mp4"] }],
     });
     if (!dest) return;

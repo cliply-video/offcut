@@ -20,9 +20,9 @@ function Check() {
   );
 }
 
-// The connective tissue across the flow: one rail under the titlebar marking
-// which of the three stages (video → xml → clips) you're on. Stages already
-// reached are clickable, so it doubles as back/forward navigation.
+// The clip cutter is the one tool that is a sequence: this rail, under the tool
+// tabs, marks which of its three stages (video → xml → clips) you're on. Stages
+// already reached are clickable, so it doubles as back/forward navigation.
 export function Stepper({
   current,
   reached,

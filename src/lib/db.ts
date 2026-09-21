@@ -37,6 +37,19 @@ export async function getVideo(videoId: string): Promise<VideoRow | undefined> {
   return rows[0];
 }
 
+// Repoints a library video at its new location after the file is moved out of
+// app data (Download → "Save to…").
+export async function setVideoPath(
+  videoId: string,
+  localPath: string,
+): Promise<void> {
+  const d = await db();
+  await d.execute("UPDATE videos SET local_path = ? WHERE id = ?", [
+    localPath,
+    videoId,
+  ]);
+}
+
 export interface VideoListRow extends VideoRow {
   clip_count: number;
 }

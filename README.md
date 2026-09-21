@@ -5,9 +5,10 @@
   <img src="docs/brand/offcut-lockup-light.png" width="420" alt="Offcut by cliply" />
 </picture>
 
-<b>Open-source, offline desktop clip cutter.</b><br />
-Paste a link, import your analysis XML, review the clips, and export
-MP4s with ffmpeg — fully offline. No account, no cloud, no telemetry.
+<b>Open-source, offline desktop video toolbox.</b><br />
+Download a video, cut it into clips from your analysis XML, join files, or
+convert formats — all with ffmpeg, fully offline. No account, no cloud, no
+telemetry.
 
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-38bdf8?style=flat-square" alt="License: Apache-2.0" /></a>
@@ -32,6 +33,41 @@ MP4s with ffmpeg — fully offline. No account, no cloud, no telemetry.
 
 <img src="docs/mascot.svg" align="right" width="110" alt="" />
 
+Four independent tools behind a tab rail — **Download**, **Clips**, **Join**,
+**Convert**. A running job keeps going (and keeps its progress) while you use
+another tool.
+
+### Download
+- A YouTube URL or 11-char video ID (yt-dlp), or a direct media URL (streamed
+  over HTTP), with live, cancelable progress.
+- **Save to…** moves the file where you want it; **Cut clips** and **Convert**
+  hand it straight to those tools.
+
+### Join
+- Add videos — from disk, drag and drop, or your recent downloads — reorder
+  them, get one file. Files that share a stream layout
+  (codec, decoder config, size, audio) are appended with a stream copy —
+  instant and lossless. Anything else is re-encoded to a common H.264/AAC
+  shape first; silent parts get a silence track so audio stays in sync.
+- The plan (fast copy vs. re-encode, and why) is shown before you run it. A
+  re-encode can target a fixed frame rate (24–60) instead of following the
+  first video.
+
+### Convert
+- Batch convert to MP4, MOV, MKV, WebM, or audio-only MP3 / M4A / WAV.
+  Presets: **Compatible** (MP4 · H.264 · AAC), **Light** (720p), **Audio
+  only**, or **Custom** — a spec sheet with every option in sight: container,
+  codecs, max height, frame rate, and compression by quality level, **target
+  size** (MB per file) or exact **bitrate**. Each preset reads its output spec
+  back as you change it.
+- **Remove audio** mutes any video output; on its own it is still a fast copy.
+- Each file shows its verdict up front: **fast copy** when only the container
+  changes, **audio re-encode** when just the audio needs swapping, or
+  **re-encode**. Output goes next to each original or to a folder you pick;
+  existing files are never overwritten. Library downloads are named by their
+  title and land in Downloads rather than inside app data.
+
+### Clips
 A three-step flow — **Video → XML → Clips** — with a step rail to track where you are:
 
 **Video**

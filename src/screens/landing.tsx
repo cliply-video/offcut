@@ -1,6 +1,8 @@
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowRightIcon } from "../components/icons";
+import { Corners } from "../components/osd";
+import { TOOLS, type ToolName } from "../components/tool-rail";
 import { useT } from "../i18n";
 import { deleteMedia } from "../lib/api";
 import {
@@ -11,15 +13,16 @@ import {
 } from "../lib/db";
 import { friendlyError } from "../lib/errors";
 
-// Landing / branding page — the entry point, outside the step flow. Introduces
-// the app and launches the three-step flow (video → xml → clips) or resumes a
-// past video.
+// Home — the tool hub. Each card opens a tool; the library below resumes a
+// past video in the clip cutter.
 export function Landing({
-  onStart,
+  onTool,
   onResume,
+  onDeleted,
 }: {
-  onStart: () => void;
+  onTool: (tool: ToolName) => void;
   onResume: (videoId: string, hasClips: boolean) => void;
+  onDeleted: (videoId: string) => void;
 }) {
   const { t } = useT();
   const [recent, setRecent] = useState<VideoListRow[]>([]);
@@ -43,11 +46,12 @@ export function Landing({
         await deleteMedia(v.id, clipIds);
         await deleteVideo(v.id);
         setRecent((r) => r.filter((x) => x.id !== v.id));
+        onDeleted(v.id);
       } catch (e) {
         setError(friendlyError(e, t));
       }
     },
-    [t],
+    [t, onDeleted],
   );
 
   return (
@@ -55,7 +59,7 @@ export function Landing({
       <div className="hero">
         <div style={{ display: "grid", gap: 10 }}>
           <p className="eyebrow">{t("home.eyebrow")}</p>
-          <h1 className="display">
+          <h1 className="display display-md">
             {t("home.titleA")}
             <br />
             <span className="accent-text">{t("home.titleB")}</span>
@@ -64,13 +68,29 @@ export function Landing({
 
         <p className="lead">{t("home.lead")}</p>
 
-        {error && <p style={{ color: "var(--destructive)", margin: 0 }}>{error}</p>}
+        {error && <p className="error-text">{error}</p>}
 
-        <div className="hero-cta-row">
-          <button type="button" className="primary hero-cta" onClick={onStart}>
-            {t("home.start")}
-            <ArrowRightIcon size={17} />
-          </button>
+        <div className="toolgrid">
+          {TOOLS.map(({ key, Icon }, i) => (
+            <button
+              key={key}
+              type="button"
+              className="toolcard"
+              onClick={() => onTool(key)}
+            >
+              <Corners />
+              <span className="toolcard-top">
+                <Icon size={20} />
+                <span className="toolcard-n">0{i + 1}</span>
+              </span>
+              <span className="toolcard-name">{t(`tools.${key}`)}</span>
+              <span className="toolcard-desc">{t(`home.tool.${key}`)}</span>
+              <span className="toolcard-go">
+                {t("home.open")}
+                <ArrowRightIcon size={12} />
+              </span>
+            </button>
+          ))}
         </div>
 
         {recent.length > 0 && (

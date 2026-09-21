@@ -10,6 +10,7 @@ import {
 } from "../components/icons";
 import { Handoff } from "../components/handoff";
 import { Corners } from "../components/osd";
+import { Switch } from "../components/switch";
 import { useT } from "../i18n";
 import { friendlyError } from "../lib/errors";
 import { playSfx } from "../lib/sfx";
@@ -46,31 +47,6 @@ const REEL_MODES: { value: ReelMode; labelKey: string; hintKey: string }[] = [
   },
 ];
 
-function Switch({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      className={`switch ${checked ? "on" : ""}`}
-      onClick={() => onChange(!checked)}
-    >
-      <span className="switch-track">
-        <span className="switch-thumb" />
-      </span>
-      <span className="switch-label">{label}</span>
-    </button>
-  );
-}
-
 interface Progress {
   phase: string;
   done: number;
@@ -97,6 +73,7 @@ export function ExportDialog({
   const [reelMode, setReelMode] = useState<ReelMode>("perTag");
   const [reencode, setReencode] = useState(false);
   const [watermark, setWatermark] = useState(true);
+  const [mute, setMute] = useState(false);
   const [phase, setPhase] = useState<Phase>("config");
   const [prog, setProg] = useState<Progress | null>(null);
   const [summary, setSummary] = useState<ExportSummary | null>(null);
@@ -153,6 +130,7 @@ export function ExportDialog({
         reelMode,
         reencode,
         watermark,
+        mute,
       });
       if (result.cancelled) {
         setCancelling(false);
@@ -176,6 +154,7 @@ export function ExportDialog({
     reelMode,
     reencode,
     watermark,
+    mute,
     info,
   ]);
 
@@ -283,6 +262,15 @@ export function ExportDialog({
                   label={t("export.watermark")}
                 />
                 <span className="field-hint">{t("export.watermarkHint")}</span>
+              </div>
+
+              <div className="field field--switch">
+                <Switch
+                  checked={mute}
+                  onChange={setMute}
+                  label={t("export.mute")}
+                />
+                <span className="field-hint">{t("export.muteHint")}</span>
               </div>
             </div>
 

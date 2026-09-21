@@ -1,112 +1,48 @@
-import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { RecentVideos } from "../components/recent-videos";
 import { useT } from "../i18n";
-import { cancelDownload, downloadUrl, downloadYoutube } from "../lib/api";
 import { createVideo } from "../lib/db";
 import { friendlyError } from "../lib/errors";
+import { basename, VIDEO_EXTS } from "../lib/media";
 import { playSfx } from "../lib/sfx";
+import { useDownload } from "../lib/use-download";
 
-const VIDEO_EXTS = [
-  "mp4",
-  "m4v",
-  "mov",
-  "webm",
-  "mkv",
-  "avi",
-  "mpg",
-  "mpeg",
-  "wmv",
-  "flv",
-];
-
-// Accept a full URL or a bare 11-char YouTube id (e.g. "TM5EWRJ2ZSQ").
-function toVideoUrl(input: string): string {
-  const s = input.trim();
-  if (/^[A-Za-z0-9_-]{11}$/.test(s)) {
-    return `https://www.youtube.com/watch?v=${s}`;
-  }
-  return s;
-}
-
-// A direct media URL ends in a single-file video extension — fetch it straight
-// over HTTP. Anything else (YouTube, HLS, other sites) goes through yt-dlp.
-function isDirectMedia(input: string): boolean {
-  try {
-    const u = new URL(input);
-    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
-    const ext = u.pathname.split(".").pop()?.toLowerCase();
-    return !!ext && VIDEO_EXTS.includes(ext);
-  } catch {
-    return false;
-  }
-}
-
-function basename(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
-}
-
-// Step 1 — add a video by link/URL/id (downloaded) or a local file (used in
-// place). On success routes on to the XML import step.
+// Clips step 1 — add a video by link/URL/id (downloaded), a local file (used
+// in place), or one already in the library. On success routes on to the XML
+// import step (or straight to the clips, for a library video that has them).
 export function AddVideo({
+  active,
+  onBusy,
   onVideo,
+  onResume,
   onBack,
 }: {
+  active: boolean;
+  onBusy: (busy: boolean) => void;
   onVideo: (videoId: string) => void;
+  onResume: (videoId: string, hasClips: boolean) => void;
   onBack: () => void;
 }) {
   const { t } = useT();
+  const dl = useDownload();
   const [url, setUrl] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [percent, setPercent] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const videoId = useRef<string | null>(null);
 
   useEffect(() => {
-    const un = listen<{ videoId: string; percent: number }>(
-      "media-download",
-      (e) => {
-        if (e.payload.videoId === videoId.current) setPercent(e.payload.percent);
-      },
-    );
-    return () => {
-      un.then((f) => f());
-    };
-  }, []);
+    onBusy(dl.busy);
+  }, [dl.busy, onBusy]);
 
   const start = useCallback(async () => {
-    const target = toVideoUrl(url);
-    if (!target) return;
-    const id = crypto.randomUUID();
-    videoId.current = id;
-    setBusy(true);
-    setError(null);
-    setPercent(0);
-    try {
-      const fetcher = isDirectMedia(target) ? downloadUrl : downloadYoutube;
-      const out = await fetcher(id, target);
-      if (out.status === "cancelled") {
-        setBusy(false);
-        return;
-      }
-      await createVideo({
-        id,
-        title: out.title ?? target,
-        url: target,
-        local_path: out.path ?? "",
-      });
-      playSfx();
-      onVideo(id);
-    } catch (e) {
-      setError(friendlyError(e, t));
-      setBusy(false);
-    }
-  }, [url, onVideo, t]);
+    const video = await dl.start(url);
+    if (!video) return;
+    playSfx();
+    onVideo(video.id);
+  }, [dl, url, onVideo]);
 
   // Use a local video file in place — no download, no copy. ffmpeg and the
   // asset protocol read the original path directly.
   const pickLocal = useCallback(async () => {
-    setError(null);
+    dl.setError(null);
     const path = await open({
       multiple: false,
       filters: [{ name: "Video", extensions: VIDEO_EXTS }],
@@ -123,13 +59,9 @@ export function AddVideo({
       playSfx();
       onVideo(id);
     } catch (e) {
-      setError(friendlyError(e, t));
+      dl.setError(friendlyError(e, t));
     }
-  }, [onVideo, t]);
-
-  const cancel = useCallback(() => {
-    if (videoId.current) cancelDownload(videoId.current);
-  }, []);
+  }, [dl, onVideo, t]);
 
   return (
     <div className="stage stage-top">
@@ -148,33 +80,31 @@ export function AddVideo({
             placeholder={t("home.placeholder")}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            disabled={busy}
+            disabled={dl.busy}
           />
-          {busy && (
+          {dl.busy && (
             <div className="bar">
-              <span style={{ width: `${percent}%` }} />
+              <span style={{ width: `${dl.percent}%` }} />
             </div>
           )}
-          {error && (
-            <p style={{ color: "var(--destructive)", margin: 0 }}>{error}</p>
-          )}
+          {dl.error && <p className="error-text">{dl.error}</p>}
           <div className="row">
             <button
               type="button"
               className="primary btn-lg"
               onClick={start}
-              disabled={busy || !url.trim()}
+              disabled={dl.busy || !url.trim()}
             >
-              {busy
-                ? t("home.downloading", { pct: Math.round(percent) })
+              {dl.busy
+                ? t("home.downloading", { pct: Math.round(dl.percent) })
                 : t("home.download")}
             </button>
-            {busy && (
-              <button type="button" className="btn-lg" onClick={cancel}>
+            {dl.busy && (
+              <button type="button" className="btn-lg" onClick={dl.cancel}>
                 {t("home.cancel")}
               </button>
             )}
-            {!busy && (
+            {!dl.busy && (
               <button type="button" className="btn-lg" onClick={pickLocal}>
                 {t("home.localFile")}
               </button>
@@ -182,11 +112,18 @@ export function AddVideo({
           </div>
         </div>
 
+        <RecentVideos
+          active={active}
+          mode="open"
+          disabled={dl.busy}
+          onPick={(v) => onResume(v.id, v.clip_count > 0)}
+        />
+
         <button
           type="button"
           className="ghost"
           onClick={onBack}
-          disabled={busy}
+          disabled={dl.busy}
           style={{ justifySelf: "start" }}
         >
           {t("video.back")}

@@ -163,6 +163,65 @@ textarea {
   flex-direction: column;
 }
 
+/* ---- tool rail (tabs under the titlebar) ---- */
+.toolrail {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg), transparent 30%);
+  backdrop-filter: blur(10px);
+}
+.toolrail-tab {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 13px 16px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+.toolrail-tab:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ink);
+}
+.toolrail-tab:active:not(:disabled) {
+  transform: none;
+}
+.toolrail-tab.on {
+  color: var(--ink);
+}
+.toolrail-tab.on svg {
+  color: var(--accent);
+}
+/* active marker rides the rail's bottom border */
+.toolrail-tab::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.22s var(--ease);
+}
+.toolrail-tab.on::after {
+  transform: scaleX(1);
+}
+
+/* Tools that stay mounted while hidden, so a running job keeps its state. */
+.pane {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.pane[hidden] {
+  display: none;
+}
+
 /* ---- step rail (video → xml → clips), binds the flow ---- */
 .stepper {
   flex: 0 0 auto;
@@ -672,29 +731,6 @@ code {
   display: grid;
   gap: 24px;
 }
-/* Primary entry CTA — oversized so it anchors the hero, left-aligned with the
-   rest of the (left-aligned) hero column and the recents list below. */
-.hero-cta-row {
-  display: flex;
-  justify-content: flex-start;
-  margin: 4px 0;
-}
-.hero-cta {
-  padding: 20px 52px;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  gap: 14px;
-  transition:
-    background-color 0.15s var(--ease),
-    border-color 0.15s var(--ease),
-    transform 0.14s var(--ease),
-    box-shadow 0.2s var(--ease);
-}
-.hero-cta:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 38px -12px color-mix(in srgb, var(--accent), transparent 25%);
-}
 /* Flow steps reuse the hero column verbatim, so the eyebrow + title land in the
    same spot on every step (home, import, …) instead of drifting. */
 .hero-step {
@@ -816,6 +852,619 @@ code {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+/* ---- home tool hub ---- */
+.toolgrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 1040px) {
+  .toolgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.toolcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 196px;
+  padding: 22px 20px 18px;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition:
+    border-color 0.15s var(--ease),
+    transform 0.14s var(--ease),
+    box-shadow 0.2s var(--ease);
+}
+.toolcard:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--accent), transparent 45%);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--accent), transparent 30%);
+}
+.toolcard .corners i {
+  opacity: 0;
+  border-color: var(--accent);
+  transition: opacity 0.15s var(--ease);
+}
+.toolcard:hover .corners i,
+.toolcard:focus-visible .corners i {
+  opacity: 1;
+}
+.toolcard-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+.toolcard-n {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.toolcard-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--ink);
+}
+.toolcard-desc {
+  flex: 1 1 auto;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.toolcard-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.15s var(--ease);
+}
+.toolcard:hover .toolcard-go {
+  color: var(--accent);
+}
+
+/* ---- tool screens (download / join / convert) ---- */
+.display-sm {
+  font-size: clamp(28px, 3.6vw, 42px);
+}
+/* home: four verbs on one line, so the tool cards stay above the fold */
+.display-md {
+  font-size: clamp(30px, 4.1vw, 48px);
+}
+.error-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--destructive);
+}
+.run-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.out-path {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.dropzone {
+  position: relative;
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 48px 20px;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--muted);
+  background: var(--inset);
+  border: 1px dashed var(--line-2);
+}
+.dropzone:hover:not(:disabled),
+.dropzone.over {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent), transparent 94%);
+}
+.dropzone-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.dropzone-hint {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.filelist-wrap {
+  display: grid;
+  gap: 8px;
+}
+.filelist-wrap.over .filelist {
+  outline: 1px dashed var(--accent);
+  outline-offset: 5px;
+}
+.filelist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.filerow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 8px 9px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.filerow.bad {
+  border-color: color-mix(in srgb, var(--destructive), transparent 45%);
+}
+.filerow.bad .filerow-meta {
+  color: var(--destructive);
+}
+.filerow-n {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.filerow-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.filerow-name,
+.filerow-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.filerow-name {
+  font-size: 14px;
+}
+.filerow-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.filerow-order {
+  display: flex;
+  gap: 2px;
+}
+.filerow-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+.filerow-btn:hover:not(:disabled) {
+  background: transparent;
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+.filerow-btn:disabled {
+  opacity: 0.25;
+}
+.filelist-add {
+  justify-self: start;
+  background: transparent;
+  border-style: dashed;
+  color: var(--muted);
+}
+.filelist-add:hover:not(:disabled) {
+  background: transparent;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chip {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.chip.tone-win {
+  color: var(--win);
+  background: color-mix(in srgb, var(--win), transparent 90%);
+  border-color: color-mix(in srgb, var(--win), transparent 55%);
+}
+.chip.tone-gold {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold), transparent 90%);
+  border-color: color-mix(in srgb, var(--gold), transparent 55%);
+}
+.chip.tone-accent {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent), transparent 90%);
+  border-color: color-mix(in srgb, var(--accent), transparent 55%);
+}
+
+/* how the files will be joined, stated before the run */
+.verdict {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--win);
+}
+.verdict.reencode {
+  border-left-color: var(--gold);
+}
+.verdict.need {
+  border-left-color: var(--accent);
+}
+.verdict-text,
+.verdict-warn {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.verdict-warn {
+  color: var(--gold);
+}
+
+.panel {
+  display: grid;
+  gap: 22px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+/* ---- output presets: an intention first, the spec read back underneath ---- */
+.presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (max-width: 1040px) {
+  .presets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.preset {
+  position: relative;
+  display: grid;
+  /* one full-width track: the base button centers an auto-sized one */
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  justify-items: start;
+  gap: 7px;
+  min-height: 108px;
+  padding: 14px 16px 13px;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  background: var(--inset);
+  border: 1px solid var(--line-2);
+}
+.preset:hover:not(:disabled) {
+  background: var(--inset);
+  border-color: color-mix(in srgb, var(--accent), transparent 45%);
+}
+.preset.on,
+.preset.on:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent), transparent 93%);
+  border-color: var(--accent);
+}
+.preset .corners i {
+  opacity: 0;
+  border-color: var(--accent);
+  transition: opacity 0.2s var(--ease);
+}
+.preset.on .corners i {
+  opacity: 1;
+}
+.preset-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+/* tally light: lit on the live preset */
+.preset-name::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--line-2);
+  transition: all 0.2s var(--ease);
+}
+.preset.on .preset-name::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent), transparent 35%);
+}
+.preset-spec {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s var(--ease);
+}
+.preset.on .preset-spec {
+  color: var(--accent);
+}
+.preset-hint {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ---- spec sheet: label | every option in sight, like an encoder menu ---- */
+.spec {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+.spec-row {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 20px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+  animation: fadeUp 0.34s var(--ease) both;
+}
+.spec-row:nth-child(2) {
+  animation-delay: 30ms;
+}
+.spec-row:nth-child(3) {
+  animation-delay: 60ms;
+}
+.spec-row:nth-child(4) {
+  animation-delay: 90ms;
+}
+.spec-row:nth-child(5) {
+  animation-delay: 120ms;
+}
+.spec-row:nth-child(6) {
+  animation-delay: 150ms;
+}
+.spec-row:nth-child(7) {
+  animation-delay: 180ms;
+}
+@media (max-width: 760px) {
+  .spec-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.spec-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.spec-control {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+/* joined segments can't wrap, so a long row scrolls inside its own track */
+.pills {
+  justify-self: start;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pills::-webkit-scrollbar {
+  display: none;
+}
+.pills button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 8px 14px;
+}
+.pills button:only-child {
+  cursor: default;
+}
+
+.numfield {
+  justify-self: start;
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--inset);
+  border: 1px solid var(--line-2);
+  transition: border-color 0.15s var(--ease);
+}
+.numfield:focus-within {
+  border-color: color-mix(in srgb, var(--accent), transparent 40%);
+}
+.numfield.bad {
+  border-color: color-mix(in srgb, var(--destructive), transparent 35%);
+}
+.numfield input {
+  width: 84px;
+  padding: 8px 2px 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-align: right;
+  color: var(--ink);
+  background: none;
+  border: none;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.numfield input::placeholder {
+  color: var(--muted);
+}
+.numfield-unit {
+  align-self: center;
+  padding: 0 12px 0 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.numfield button {
+  width: 34px;
+  padding: 0;
+  font-size: 15px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+}
+.numfield button:first-child {
+  border-right: 1px solid var(--line-2);
+}
+.numfield button:last-child {
+  border-left: 1px solid var(--line-2);
+}
+.numfield button:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--surface-2);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 24px;
+  flex-wrap: wrap;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--win);
+}
+.result-copy {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.result-title {
+  font-size: 15px;
+}
+.result-path {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-all;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.result-actions {
+  flex-wrap: wrap;
+}
+
+.job {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.job-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.job-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.job-file {
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.job-pct {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* library as a source inside a tool (join / convert / clips step 1) */
+.recent-toggle {
+  justify-self: start;
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+}
+.recent-toggle:hover:not(:disabled) {
+  background: none;
+  color: color-mix(in srgb, var(--accent), white 25%);
+}
+/* about three rows, then scroll: the tool's own controls stay in view */
+.recent-list--compact {
+  max-height: 178px;
+  overflow-y: auto;
+  gap: 6px;
+}
+.recent-action {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none;
+  transition: color 0.15s var(--ease);
+}
+.recent-row:hover .recent-action:not(.used) {
+  color: var(--accent);
+}
+.recent-action.used {
+  color: var(--win);
 }
 
 /* ---- export drawer (slides in from the right) ---- */
@@ -1006,7 +1655,10 @@ label.row {
   color: var(--ink);
   background: var(--surface-2);
 }
-.seg button.on {
+/* :hover included, or a just-clicked segment looks unselected until the
+   pointer leaves it */
+.seg button.on,
+.seg button.on:hover:not(:disabled) {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
@@ -1460,6 +2112,7 @@ textarea:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .dot.rec,
+  .spec-row,
   .stage > *,
   .splash-stage,
   .splash-mascot,
