@@ -222,7 +222,6 @@ pub fn decide(probe: &FileProbe, t: &ConvertTarget) -> Result<Decision, &'static
     })
 }
 
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 fn video_kbps(codec: &str, height: u32, quality: Quality) -> u32 {
     let base = match height {
         0..=480 => 2500.0,
@@ -254,6 +253,18 @@ pub fn video_encode_args(
     quality: Quality,
     kbps: Option<u32>,
 ) -> Vec<String> {
+    encode_args_for(codec, height, quality, kbps, cfg!(target_os = "macos"))
+}
+
+// `hardware` is a parameter rather than a #[cfg] split so both encoder paths
+// compile and are tested on every platform, not just the one they ship on.
+pub(crate) fn encode_args_for(
+    codec: &str,
+    height: u32,
+    quality: Quality,
+    kbps: Option<u32>,
+    hardware: bool,
+) -> Vec<String> {
     let crf = match quality {
         Quality::Low => 28,
         Quality::Medium => 23,
@@ -268,30 +279,25 @@ pub fn video_encode_args(
         }
         return args;
     }
-    let mut args: Vec<String>;
-    #[cfg(target_os = "macos")]
-    {
-        let encoder = if codec == "hevc" {
+    let hevc = codec == "hevc";
+    let mut args = if hardware {
+        let encoder = if hevc {
             "hevc_videotoolbox"
         } else {
             "h264_videotoolbox"
         };
-        let _ = crf;
         let rate = format!(
             "{}k",
             kbps.unwrap_or_else(|| video_kbps(codec, height, quality))
         );
-        args = strs(&["-c:v", encoder, "-b:v", &rate, "-allow_sw", "1"]);
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        let _ = height;
-        let (encoder, crf) = if codec == "hevc" {
+        strs(&["-c:v", encoder, "-b:v", &rate, "-allow_sw", "1"])
+    } else {
+        let (encoder, crf) = if hevc {
             ("libx265", crf + 4)
         } else {
             ("libx264", crf)
         };
-        args = strs(&["-c:v", encoder, "-preset", "fast"]);
+        let mut args = strs(&["-c:v", encoder, "-preset", "fast"]);
         match kbps {
             // maxrate/bufsize keep a single pass honest about the size it lands on.
             Some(k) => args.extend(strs(&[
@@ -304,8 +310,9 @@ pub fn video_encode_args(
             ])),
             None => args.extend(strs(&["-crf", &crf.to_string()])),
         }
-    }
-    if codec == "hevc" {
+        args
+    };
+    if hevc {
         // Without hvc1 QuickTime won't open HEVC in MP4/MOV.
         args.extend(strs(&["-tag:v", "hvc1"]));
     }
@@ -720,8 +727,16 @@ mod tests {
             (d.video.clone(), d.video_kbps, d.audio.clone()),
             (Op::Encode("h264"), Some(4000), Op::Copy)
         );
-        let args = video_encode_args("h264", 1080, d.quality, d.video_kbps).join(" ");
-        assert!(args.contains("-b:v 4000k") && !args.contains("-crf"));
+        // Bitrate-driven on both encoder paths; CRF only without one.
+        for hardware in [true, false] {
+            let args = encode_args_for("h264", 1080, d.quality, d.video_kbps, hardware).join(" ");
+            assert!(
+                args.contains("-b:v 4000k") && !args.contains("-crf"),
+                "{args}"
+            );
+        }
+        let software = encode_args_for("hevc", 1080, Quality::High, None, false).join(" ");
+        assert_eq!(software, "-c:v libx265 -preset fast -crf 24 -tag:v hvc1");
 
         // 25 MB over 10 s ≈ 19.4 Mbps total; audio is pinned so the video share is exact.
         let mut t = target("mp4");

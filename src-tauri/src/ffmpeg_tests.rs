@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::AtomicBool;
 
-use crate::convert::{convert_files, ConvertTarget, OutDirs};
+use crate::convert::{convert_files, encode_args_for, ConvertTarget, OutDirs, Quality};
 use crate::jobs::{Jobs, Run, EXIT_GRACE};
 use crate::join::{join_files, plan};
 use crate::probe::{probe, FileEntry, SourceFile};
@@ -281,6 +281,38 @@ fn cancel_all_winds_a_running_job_down_within_the_exit_grace() {
         );
         assert!(!Path::new(&out).exists() && !b.dir.join(".offcut-join-exit").exists());
     });
+}
+
+// The x264/x265/VP9 flags ship on Windows and Linux; run them wherever the
+// tests run, so that path isn't first exercised on a user's machine.
+#[test]
+fn software_encoder_flags_are_accepted_and_a_bitrate_is_honored() {
+    let Some(b) = Bench::new("software") else {
+        return;
+    };
+    let src = b.clip("src.mp4", "640x360", "30", "4", false);
+
+    for (codec, ext) in [("h264", "mp4"), ("hevc", "mp4"), ("vp9", "webm")] {
+        for kbps in [None, Some(800)] {
+            let out = b.path(&format!("{codec}-{}.{ext}", kbps.unwrap_or(0)));
+            let flags = encode_args_for(codec, 360, Quality::Medium, kbps, false);
+            let mut args = vec!["-i", src.as_str(), "-vf", "format=yuv420p"];
+            args.extend(flags.iter().map(String::as_str));
+            args.push(&out);
+            b.ffmpeg(&args);
+
+            let bytes = std::fs::metadata(&out).unwrap().len();
+            if kbps.is_some() {
+                // 800 kbps over 4 s is 400 KB; single-pass rate control gets a wide berth.
+                assert!(
+                    (120_000..800_000).contains(&bytes),
+                    "{codec}: {bytes} bytes"
+                );
+            } else {
+                assert!(bytes > 0, "{codec}: empty output");
+            }
+        }
+    }
 }
 
 #[test]
